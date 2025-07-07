@@ -4,6 +4,7 @@ import { FLUSH, PAUSE, PERSIST, persistCombineReducers, persistStore, PURGE, REG
 import { authSlice } from "./auth_slice";
 import { customerSlice } from "./customer_slice";
 import { loanSlice } from "./loan_slice";
+import { paymentSlice } from "./payment_slice";
 
 const persistConfig = {
   key: 'root',
@@ -16,7 +17,8 @@ const persistConfig = {
 const persistedReducer = persistCombineReducers(persistConfig, {
   auth: authSlice.reducer,
   customer:customerSlice.reducer,
-  loan:loanSlice.reducer
+  loan:loanSlice.reducer,
+  payment:paymentSlice.reducer
 });
 
 const store = configureStore({

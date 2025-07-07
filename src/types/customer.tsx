@@ -1,10 +1,15 @@
 export interface ICustomer {
-  id: number;
-  branch_id: string;
+  _id: string;
   name: string;
-  code: string;
-  contact: string[];
+  nic: string;
+  dob: string;
   address: string;
+  phone: string;
+  email : string;
+  maritalStatus : string;
+  occupation : string;
+  income:number;
+  bankAccount:string;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

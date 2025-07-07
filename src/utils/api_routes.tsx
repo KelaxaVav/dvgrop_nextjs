@@ -2,5 +2,6 @@ export const API_ROUTES = {
     LOGIN: '/auth/login',
     PROFILE:'users',
     LOANS:'loans',
-    CUSTOMERS:'customers'
+    CUSTOMERS:'customers',
+    PAYMENTS:'payments'
 };

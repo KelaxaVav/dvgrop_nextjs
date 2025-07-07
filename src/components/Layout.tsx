@@ -43,8 +43,7 @@ const menuItems = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
-  // const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function Layout({ children, currentPage }: LayoutProps) {
     const [sidebarOpen, setSidebarOpen] = useState(true);
   const user = useSelector((state: ReduxState) => state.auth.user);
    const toggleSidebar = () => {
@@ -96,7 +95,6 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
               <button
                 key={item.id}
                 onClick={() => {
-                  // onPageChange(item.id);
                     navigate(item.id === 'dashboard' ? '/' : `/${item.id}`);
                   setSidebarOpen(false);
                 }}

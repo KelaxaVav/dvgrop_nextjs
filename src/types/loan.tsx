@@ -4,29 +4,29 @@ export interface ILoan {
         _id: string,
         name: string,
         nic: string,
-        phone: Number
+        phone: number
     };
     type: string;
     requestedAmount: string[];
-    interestRate: Number;
-    period: Number;
-    emi: Number;
+    interestRate: number;
+    period: number;
+    emi: number;
     startDate: string;
     purpose: string;
     status: string;
     guarantor: {
         name: string,
         nic: string,
-        phone: Number,
+        phone: number,
         address: string,
         occupation: string,
-        income: Number,
+        income: number,
         _id: string
     };
     collateral: {
         type: string;
         description: string;
-        value: Number;
+        value: number;
         _id: string;
     };
     createdBy: {
@@ -34,6 +34,7 @@ export interface ILoan {
         name: string,
     };
     loan_id: string;
+    approvedAmount:number;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
