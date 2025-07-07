@@ -16,63 +16,88 @@ import SMSManager from './components/notifications/SMSManager';
 import ContactManager from './components/contacts/ContactManager';
 import SettingsManager from './components/settings/SettingsManager';
 import { useState } from 'react';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import ProtectedRoute from './layout/protected_route';
+import DefaultLayout from './layout/default_layout';
 
-function AppContent() {
-  const { isAuthenticated } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
-console.log({'currentPage':currentPage});
-console.log({'isAuthenticated':isAuthenticated});
+// function AppContent() {
+//   const [currentPage, setCurrentPage] = useState('dashboard');
 
-  if (!isAuthenticated) {
-    return <Login />;
-  }
+//   if (!isAuthenticated) {
+//     return <Login />;
+//   }
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'customers':
-        return <CustomerManager />;
-      case 'loans':
-        return <LoanManager />;
-      case 'approvals':
-        return <ApprovalManager />;
-      case 'disbursements':
-        return <DisbursementManager />;
-      case 'repayments':
-        return <RepaymentManager />;
-      case 'payments':
-        return <LoanPaymentManager />;
-      case 'daily-payments':
-        return <DailyPaymentView />;
-      case 'reports':
-        return <ReportsManager />;
-      case 'users':
-        return <UserManager />;
-      case 'notifications':
-        return <SMSManager />;
-      case 'contacts':
-        return <ContactManager />;
-      case 'settings':
-        return <SettingsManager />;
-      default:
-        return <Dashboard />;
-    }
-  };
+//   const renderPage = () => {
+//     switch (currentPage) {
+//       case 'dashboard':
+//         return <Dashboard />;
+//       case 'customers':
+//         return <CustomerManager />;
+//       case 'loans':
+//         return <LoanManager />;
+//       case 'approvals':
+//         return <ApprovalManager />;
+//       case 'disbursements':
+//         return <DisbursementManager />;
+//       case 'repayments':
+//         return <RepaymentManager />;
+//       case 'payments':
+//         return <LoanPaymentManager />;
+//       case 'daily-payments':
+//         return <DailyPaymentView />;
+//       case 'reports':
+//         return <ReportsManager />;
+//       case 'users':
+//         return <UserManager />;
+//       case 'notifications':
+//         return <SMSManager />;
+//       case 'contacts':
+//         return <ContactManager />;
+//       case 'settings':
+//         return <SettingsManager />;
+//       default:
+//         return <Dashboard />;
+//     }
+//   };
 
-  return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
-    </Layout>
-  );
-}
+//   return (
+//     <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+//       {renderPage()}
+//     </Layout>
+//   );
+// }
 
 export default function App() {
+
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <Dashboard />,
+
+    },
+    {
+      path: '/login',
+      element: <Login />,
+    },
+    {
+      path: '/',
+      element: <ProtectedRoute><DefaultLayout /></ProtectedRoute>,
+      children: [
+        {
+          index: true,
+          element: <Dashboard />,
+        },
+       
+        
+      ],
+    },
+  ]);
   return (
-    <DataProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </DataProvider>
+        // <AppContent />
+    // <DataProvider>
+    //   <AuthProvider>
+    //   </AuthProvider>
+    // </DataProvider>
+    <RouterProvider router={router} />
   );
 }

@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { User, LoginLog } from "../types";
 import { useData } from "./DataContext";
 import axios from "axios";
+import { useDispatch, useSelector } from 'react-redux';
+import { setAuth,logout as logoutAction } from "../redux/auth_slice";
+import { ReduxState } from "../types/redux_state";
 
 interface AuthContextType {
   user: User | null;
@@ -14,23 +17,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { addLoginLog, updateUser } = useData();
-
+ const dispatch = useDispatch();
+   const isAuthenticated = useSelector((state: ReduxState) => state.auth.isAuthenticated);
   useEffect(() => {
     const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       setUser(userData);
-      setIsAuthenticated(true);
-
+      // setIsAuthenticated(true);
       updateUser(userData.id, { isOnline: true });
     }
   }, []);
 
   const getClientInfo = () => {
     return {
-      ipAddress: "192.168.1." + Math.floor(Math.random() * 255), 
+      ipAddress: "192.168.1." + Math.floor(Math.random() * 255),
       userAgent: navigator.userAgent,
       location: "Colombo, Sri Lanka",
     };
@@ -44,12 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/v1/auth/login",{ username, password }
+        "http://localhost:5000/api/v1/auth/login", { username, password }
       );
       console.log("Customer saved:", response.data);
       localStorage.setItem("token", response.data.token);
-      setUser(response.data.user);
-      setIsAuthenticated(true);
+      dispatch(setAuth({ user: response.data.user, token: response.data.token }));
+      // setUser(response.data.user);
+      // setIsAuthenticated(true);
     } catch (error) {
       console.error("Error saving customer:", error);
     }
@@ -129,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userWithoutPassword = updatedUser;
 
     setUser(userWithoutPassword);
-    setIsAuthenticated(true);
+    // setIsAuthenticated(true);
     localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
 
     updateUser(foundUser._id, {
@@ -151,29 +154,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return true;
   };
 
-  const logout = () => {
-    if (user) {
-      const logoutTime = new Date().toISOString();
+  // const logout = () => {
+  //   if (user) {
+  //     const logoutTime = new Date().toISOString();
 
-      updateUser(user._id, {
-        isOnline: false,
-        lastLogout: logoutTime,
-        sessionToken: undefined,
-        updatedAt: logoutTime,
-      });
+  //     updateUser(user._id, {
+  //       isOnline: false,
+  //       lastLogout: logoutTime,
+  //       sessionToken: undefined,
+  //       updatedAt: logoutTime,
+  //     });
 
-      addLoginLog({
-        userId: user._id,
-        loginTime: user.lastLogin || new Date().toISOString(),
-        logoutTime,
-        ...getClientInfo(),
-        status: "logout",
-      });
-    }
+  //     addLoginLog({
+  //       userId: user._id,
+  //       loginTime: user.lastLogin || new Date().toISOString(),
+  //       logoutTime,
+  //       ...getClientInfo(),
+  //       status: "logout",
+  //     });
+  //   }
 
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("currentUser");
+  //   setUser(null);
+  //   setIsAuthenticated(false);
+  //   localStorage.removeItem("currentUser");
+  // };
+    const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    dispatch(logoutAction());
   };
 
   return (
@@ -190,3 +198,7 @@ export function useAuth() {
   }
   return context;
 }
+function loginSuccess(arg0: { user: any; token: any; }): any {
+  throw new Error("Function not implemented.");
+}
+

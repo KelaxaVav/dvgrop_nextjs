@@ -16,7 +16,10 @@ import {
   MessageSquare,
   Mail
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { ReduxState } from '../types/redux_state';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout as logoutAction } from '../redux/auth_slice';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -42,8 +45,8 @@ const menuItems = [
 
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
-
+   const user = useSelector((state: ReduxState) => state.auth.user);
+   
   const canAccess = (menuId: string) => {
     if (user?.role === 'admin') return true;
     if (user?.role === 'officer' && ['dashboard', 'customers', 'loans', 'approvals', 'disbursements', 'repayments', 'payments', 'daily-payments', 'notifications', 'contacts', 'reports', 'settings'].includes(menuId)) return true;
@@ -52,7 +55,14 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
   };
 
   const filteredMenuItems = menuItems.filter(item => canAccess(item.id));
-
+const dispatch = useDispatch();
+const navigate = useNavigate();
+const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
+    dispatch(logoutAction());
+    navigate('/login');
+};
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
@@ -110,7 +120,7 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
             </div>
           </div>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
           >
             <LogOut className="w-4 h-4 mr-2" />

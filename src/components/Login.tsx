@@ -1,32 +1,35 @@
-import React, { useState } from 'react';
-import { Shield, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useForm } from 'react-hook-form';
+import { LoginFormValues } from '../form_values/form_value';
+import { useLogin, usePasswordToggle } from './login/login_service';
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  // const { login } = useAuth();
+  const { register, handleSubmit} = useForm<LoginFormValues>();
+  const { showPassword, togglePasswordVisibility } = usePasswordToggle();
+    const { onSubmit } = useLogin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+  // const onSumbit = async (data: any) => {
+  //   setError('');
+  //   setLoading(true);
 
-    try {
-      const success = await login(username, password);
-      console.log({'sucess':success});
-      
-      if (!success) {
-        setError('Invalid username or password');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     const success = await useLogin(data.username, data.password);
+  //     console.log({ 'sucess': success });
+
+  //     if (!success) {
+  //       setError('Invalid username or password');
+  //     }
+  //   } catch (err) {
+  //     setError('An error occurred. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -46,18 +49,17 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username
             </label>
             <input
+              {...register('username')}
               type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="Enter your username"
+              style={{ borderColor: `${error ? 'red' : ''}` }}
+              placeholder={'Enter your username'}
               required
             />
           </div>
@@ -66,15 +68,27 @@ export default function Login() {
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              placeholder="Enter your password"
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                {...register('password')}
+                type={showPassword ? 'text' : 'password'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                style={{ borderColor: `${error ? 'red' : ''}` }}
+                placeholder={'Enter your password'}
+                required
+              />
+              <button
+                type="button"
+                onClick={togglePasswordVisibility}
+                style={{
+                  position: 'absolute', right: '0.75rem', top: '50%',
+                  transform: 'translateY(-50%)', color: '#000', outline: 'none', cursor: 'pointer',
+                }}
+              >
+                {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+              </button>
+
+            </div>
           </div>
 
           <button
@@ -86,14 +100,14 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+        {/* <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
           <div className="space-y-1 text-xs text-gray-500">
             <div><strong>Admin:</strong> admin / password</div>
             <div><strong>Officer:</strong> officer / password</div>
             <div><strong>Clerk:</strong> clerk / password</div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
