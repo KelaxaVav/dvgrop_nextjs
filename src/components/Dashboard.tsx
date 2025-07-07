@@ -1,28 +1,36 @@
-import { 
-  Users, 
-  FileText, 
-  DollarSign, 
-  Calendar, 
+import {
+  Users,
+  FileText,
+  DollarSign,
+  Calendar,
   AlertTriangle,
   Clock
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { fetchLoans } from '../utils/fetch';
+import { ReduxState } from '../types/redux_state';
 
 export default function Dashboard() {
   // const { customers, loans, repayments } = useData();
+  const dispatch = useDispatch();
+  const { loans, total: totalLoans } = useSelector((state: ReduxState) => state.loan);
+  const { customers, total: totalCustomers } = useSelector((state: ReduxState) => state.customer);
 
-  // const stats = {
-  //   totalCustomers: customers.length,
-  //   totalLoans: loans.length,
-  //   activeLoans: loans.filter(l => l.status === 'approved').length,
-  //   pendingApprovals: loans.filter(l => l.status === 'pending').length,
-  //   totalDisbursed: loans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0),
-  //   overduePayments: repayments.filter(r => r.status === 'overdue').length,
-  //   monthlyCollection: repayments
-  //     .filter(r => r.status === 'paid' && r.paymentDate && 
-  //       new Date(r.paymentDate).getMonth() === new Date().getMonth())
-  //     .reduce((sum, r) => sum + (r.paidAmount || 0), 0)
-  // };
+  console.log({ 'loans': loans });
+  const stats = {
+    totalCustomers: totalCustomers,
+    totalLoans: totalLoans,
+    activeLoans: loans.filter(l => l.status === 'approved').length,
+    // pendingApprovals: loans.filter(l => l.status === 'pending').length,
+    // totalDisbursed: loans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0),
+    // overduePayments: repayments.filter(r => r.status === 'overdue').length,
+    // monthlyCollection: repayments
+    //   .filter(r => r.status === 'paid' && r.paymentDate && 
+    //     new Date(r.paymentDate).getMonth() === new Date().getMonth())
+    //   .reduce((sum, r) => sum + (r.paidAmount || 0), 0)
+  };
 
   // const recentLoans = loans.slice(-5).reverse();
   // const upcomingPayments = repayments
@@ -30,7 +38,11 @@ export default function Dashboard() {
   //   .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   //   .slice(0, 5);
 
-  
+
+
+  useEffect(() => {
+    fetchLoans(dispatch);
+  }, [dispatch]);
 
   return (
     <div className="space-y-6">
@@ -47,7 +59,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              {/* <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p> */}
+              <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
             </div>
           </div>
         </div>
@@ -59,7 +71,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Loans</p>
-              {/* <p className="text-2xl font-bold text-gray-900">{stats.activeLoans}</p> */}
+              <p className="text-2xl font-bold text-gray-900">{stats.activeLoans}</p>
             </div>
           </div>
         </div>

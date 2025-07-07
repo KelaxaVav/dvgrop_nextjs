@@ -1,7 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { ICustomer } from "../types/customer";
 
 export interface CustomerState {
-    customers: any[],
+    customers: ICustomer[],
     total:null
 }
 

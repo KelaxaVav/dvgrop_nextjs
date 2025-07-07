@@ -6,10 +6,12 @@ import { setLoans } from "../redux/loan_slice";
 
 export const fetchLoans = async (dispatch: Dispatch) => {
     try {
-        const response = await Http.get(`${API_ROUTES.LOANS}}`);
+        const response = await Http.get(`${API_ROUTES.LOANS}`);
         const data = response.data;
         if (Array.isArray(data.data)) {
-            dispatch(setLoans({ data: data.data, total: data.meta.total }));
+            console.log({'datadata':data.data});
+            
+            dispatch(setLoans({ data: data.data, total: data.count }));
         }
     } catch (error) {
         handleApiError(error, 'Failed to fetch loans');
