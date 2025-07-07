@@ -125,13 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updatedAt: loginTime,
     };
 
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    // const { password: _, ...userWithoutPassword } = updatedUser;
+    const userWithoutPassword = updatedUser;
 
     setUser(userWithoutPassword);
     setIsAuthenticated(true);
     localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
 
-    // Update user in database
     updateUser(foundUser._id, {
       lastLogin: loginTime,
       isOnline: true,
@@ -140,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updatedAt: loginTime,
     });
 
-    // Log successful login
     addLoginLog({
       userId: foundUser._id,
       loginTime,
@@ -156,7 +155,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       const logoutTime = new Date().toISOString();
 
-      // Update user online status
       updateUser(user._id, {
         isOnline: false,
         lastLogout: logoutTime,
@@ -164,7 +162,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updatedAt: logoutTime,
       });
 
-      // Log logout
       addLoginLog({
         userId: user._id,
         loginTime: user.lastLogin || new Date().toISOString(),
