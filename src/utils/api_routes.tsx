@@ -1,4 +1,5 @@
 export const API_ROUTES = {
     LOGIN: '/auth/login',
-    PROFILE:'users'
+    PROFILE:'users',
+    LOANS:'loans'
 };

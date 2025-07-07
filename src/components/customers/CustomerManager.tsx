@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Customer } from '../../types';
-import { useData } from '../../contexts/DataContext';
+// import { useData } from '../../contexts/DataContext';
 import CustomerList from './CustomerList';
 import CustomerForm from './CustomerForm';
 import CustomerView from './CustomerView';

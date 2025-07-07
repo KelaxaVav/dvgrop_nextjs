@@ -44,9 +44,14 @@ const menuItems = [
 ];
 
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
   const user = useSelector((state: ReduxState) => state.auth.user);
-
+   const toggleSidebar = () => {
+        setSidebarOpen(prev => !prev);
+    };
+  console.log({'user':user});
+  
   const canAccess = (menuId: string) => {
     if (user?.role === 'admin') return true;
     if (user?.role === 'officer' && ['dashboard', 'customers', 'loans', 'approvals', 'disbursements', 'repayments', 'payments', 'daily-payments', 'notifications', 'contacts', 'reports', 'settings'].includes(menuId)) return true;
@@ -64,20 +69,20 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
     dispatch(logoutAction());
     navigate('/login');
   };
+  console.log({'filteredMenuItems':filteredMenuItems});
+  
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={toggleSidebar} />
       )}
 
-      {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
         <div className="flex items-center justify-between p-6 border-b">
           <h1 className="text-xl font-bold text-gray-800">LoanManager Pro</h1>
           <button
-            onClick={() => setSidebarOpen(false)}
+            onClick={toggleSidebar}
             className="lg:hidden text-gray-500 hover:text-gray-700"
           >
             <X className="w-5 h-5" />
@@ -91,7 +96,8 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
               <button
                 key={item.id}
                 onClick={() => {
-                  onPageChange(item.id);
+                  // onPageChange(item.id);
+                    navigate(item.id === 'dashboard' ? '/' : `/${item.id}`);
                   setSidebarOpen(false);
                 }}
                 className={`w-full flex items-center px-6 py-3 text-left transition-colors ${currentPage === item.id
