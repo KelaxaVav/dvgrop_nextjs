@@ -1,5 +1,5 @@
 export interface Customer {
-  id: string;
+  _id: string;
   name: string;
   nic: string;
   dob: string;
@@ -16,8 +16,9 @@ export interface Customer {
 }
 
 export interface Loan {
-  id: string;
-  customerId: string;
+  _id: string;
+  loan_id: string;
+  customerId: Customer,
   type: 'personal' | 'business' | 'agriculture' | 'vehicle' | 'housing';
   requestedAmount: number;
   approvedAmount?: number;
@@ -55,7 +56,7 @@ export interface Collateral {
   type: string;
   description: string;
   value: number;
-  ownership: string;
+  // ownership: string;
 }
 
 export interface Document {
@@ -82,7 +83,7 @@ export interface Repayment {
 }
 
 export interface User {
-  id: string;
+  _id: string;
   username: string;
   email: string;
   role: 'admin' | 'officer' | 'clerk' | 'customer';

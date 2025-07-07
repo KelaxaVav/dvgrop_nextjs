@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ErrorResponse from '../utils/errorResponse.js';
 import asyncHandler from '../middleware/async.js';
 import Loan from '../models/Loan.js';
@@ -55,13 +56,13 @@ export const getLoan = asyncHandler(async (req, res, next) => {
 // @route   POST /api/v1/customers/:customerId/loans
 // @access  Private
 export const createLoan = asyncHandler(async (req, res, next) => {
-  req.body.customerId = req.params.customerId;
+  req.body.customerId = req.body.customerId;
   req.body.createdBy = req.user.id;
 
-  const customer = await Customer.findById(req.params.customerId);
+  const customer = await Customer.findById(req.body.customerId);
 
   if (!customer) {
-    return next(new ErrorResponse(`Customer not found with id of ${req.params.customerId}`, 404));
+    return next(new ErrorResponse(`Customer not found with id of ${req.body.customerId}`, 404));
   }
 
   // Get loan ID prefix from settings
@@ -75,7 +76,7 @@ export const createLoan = asyncHandler(async (req, res, next) => {
   // Create loan with custom ID
   const loan = await Loan.create({
     ...req.body,
-    _id: loanId
+    loan_id: loanId
   });
 
   // Check notification settings
@@ -93,7 +94,7 @@ export const createLoan = asyncHandler(async (req, res, next) => {
         .replace('[LoanID]', loan._id);
       
       // Send SMS
-      await sendSMS(customer.phone, message, 'loanApplication', customer._id, customer.name);
+      // await sendSMS(customer.phone, message, 'loanApplication', customer._id, customer.name);
     }
   }
 

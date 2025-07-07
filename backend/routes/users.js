@@ -17,9 +17,9 @@ import User from '../models/User.js';
 const router = express.Router();
 
 // Apply protection to all routes
-router.use(protect);
+// router.use(protect);
 // Apply authorization to all routes
-router.use(authorize('admin'));
+// router.use(authorize('admin'));
 
 router.route('/')
   .get(advancedResults(User), getUsers)

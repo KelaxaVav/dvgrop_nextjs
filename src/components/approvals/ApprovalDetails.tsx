@@ -123,7 +123,7 @@ export default function ApprovalDetails({
                   Loan Application Details
                 </h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="text-blue-600 font-medium">Loan ID:</span> {loan.id}</div>
+                  <div><span className="text-blue-600 font-medium">Loan ID:</span> {loan._id}</div>
                   <div><span className="text-blue-600 font-medium">Type:</span> {loan.type}</div>
                   <div><span className="text-blue-600 font-medium">Requested Amount:</span> LKR {loan.requestedAmount.toLocaleString()}</div>
                   <div><span className="text-blue-600 font-medium">Interest Rate:</span> {loan.interestRate}% per month</div>
@@ -176,7 +176,7 @@ export default function ApprovalDetails({
                     <div><span className="text-purple-600 font-medium">Type:</span> {loan.collateral.type}</div>
                     <div><span className="text-purple-600 font-medium">Value:</span> LKR {loan.collateral.value.toLocaleString()}</div>
                     <div className="col-span-2"><span className="text-purple-600 font-medium">Description:</span> {loan.collateral.description}</div>
-                    <div className="col-span-2"><span className="text-purple-600 font-medium">Ownership:</span> {loan.collateral.ownership}</div>
+                    {/* <div className="col-span-2"><span className="text-purple-600 font-medium">Ownership:</span> {loan.collateral.ownership}</div> */}
                   </div>
                 </div>
               )}

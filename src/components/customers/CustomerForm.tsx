@@ -1,55 +1,82 @@
-import React, { useState } from 'react';
-import { X, Upload, FileText } from 'lucide-react';
-import { Customer } from '../../types';
-import { useData } from '../../contexts/DataContext';
+import React, { useState } from "react";
+import { X, Upload, FileText } from "lucide-react";
+import { Customer } from "../../types";
+import { useData } from "../../contexts/DataContext";
+import axios from "axios";
 
 interface CustomerFormProps {
   customer?: Customer;
-  onSave: (customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (customer: Omit<Customer, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
 }
 
-export default function CustomerForm({ customer, onSave, onCancel }: CustomerFormProps) {
+export default function CustomerForm({
+  customer,
+  onSave,
+  onCancel,
+}: CustomerFormProps) {
   const { emailSyncConfig } = useData();
   const [formData, setFormData] = useState({
-    name: customer?.name || '',
-    nic: customer?.nic || '',
-    dob: customer?.dob || '',
-    address: customer?.address || '',
-    phone: customer?.phone || '',
-    email: customer?.email || '',
-    maritalStatus: customer?.maritalStatus || 'single',
-    occupation: customer?.occupation || '',
+    name: customer?.name || "",
+    nic: customer?.nic || "",
+    dob: customer?.dob || "",
+    address: customer?.address || "",
+    phone: customer?.phone || "",
+    email: customer?.email || "",
+    maritalStatus: customer?.maritalStatus || "single",
+    occupation: customer?.occupation || "",
     income: customer?.income || 0,
-    bankAccount: customer?.bankAccount || '',
-    addToEmailList: emailSyncConfig.syncOnCustomerRegistration
+    bankAccount: customer?.bankAccount || "",
+    addToEmailList: emailSyncConfig.syncOnCustomerRegistration,
   });
 
   const [documents, setDocuments] = useState(customer?.documents || []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
-      ...formData,
-      maritalStatus: formData.maritalStatus as 'married' | 'single',
-      documents
-    });
+    // onSave({
+    //   ...formData,
+    //   maritalStatus: formData.maritalStatus as 'married' | 'single',
+    //   documents
+    // });
+
+    try {
+      const token = localStorage.getItem("token"); // Adjust key name if different
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/customers",
+        {
+          ...formData,
+          maritalStatus: formData.maritalStatus as "married" | "single",
+          documents,
+        },
+        { headers }
+      );
+      console.log("Customer saved:", response.data);
+      onSave(response.data.data); // optionally close form after save
+    } catch (error) {
+      console.error("Error saving customer:", error);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const newDocuments = files.map(file => ({
+    const newDocuments = files.map((file) => ({
       id: Date.now().toString() + Math.random().toString(36).slice(2),
       name: file.name,
       type: file.type,
       url: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
     }));
     setDocuments([...documents, ...newDocuments]);
   };
 
   const removeDocument = (id: string) => {
-    setDocuments(documents.filter(doc => doc.id !== id));
+    setDocuments(documents.filter((doc) => doc.id !== id));
   };
 
   return (
@@ -57,7 +84,7 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
       <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-800">
-            {customer ? 'Edit Customer' : 'Add New Customer'}
+            {customer ? "Edit Customer" : "Add New Customer"}
           </h2>
           <button
             onClick={onCancel}
@@ -71,8 +98,10 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Personal Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Personal Information</h3>
-              
+              <h3 className="text-lg font-medium text-gray-800 border-b pb-2">
+                Personal Information
+              </h3>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name *
@@ -81,7 +110,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -94,7 +125,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="text"
                   required
                   value={formData.nic}
-                  onChange={(e) => setFormData({...formData, nic: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nic: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -107,7 +140,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="date"
                   required
                   value={formData.dob}
-                  onChange={(e) => setFormData({...formData, dob: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, dob: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -119,7 +154,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                 <select
                   required
                   value={formData.maritalStatus}
-                  onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, maritalStatus: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="single">Single</option>
@@ -135,7 +172,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   required
                   rows={3}
                   value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -143,8 +182,10 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
 
             {/* Contact & Financial Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Contact & Financial Details</h3>
-              
+              <h3 className="text-lg font-medium text-gray-800 border-b pb-2">
+                Contact & Financial Details
+              </h3>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone Number *
@@ -153,7 +194,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="tel"
                   required
                   value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -165,7 +208,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -178,7 +223,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="text"
                   required
                   value={formData.occupation}
-                  onChange={(e) => setFormData({...formData, occupation: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, occupation: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -191,7 +238,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="number"
                   required
                   value={formData.income}
-                  onChange={(e) => setFormData({...formData, income: Number(e.target.value)})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, income: Number(e.target.value) })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -203,7 +252,9 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                 <input
                   type="text"
                   value={formData.bankAccount}
-                  onChange={(e) => setFormData({...formData, bankAccount: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bankAccount: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -214,10 +265,18 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                   type="checkbox"
                   id="addToEmailList"
                   checked={formData.addToEmailList}
-                  onChange={(e) => setFormData({...formData, addToEmailList: e.target.checked})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      addToEmailList: e.target.checked,
+                    })
+                  }
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
-                <label htmlFor="addToEmailList" className="ml-2 block text-sm text-gray-900">
+                <label
+                  htmlFor="addToEmailList"
+                  className="ml-2 block text-sm text-gray-900"
+                >
                   Add to email contact list for marketing and updates
                 </label>
               </div>
@@ -241,18 +300,27 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
                     className="cursor-pointer flex flex-col items-center"
                   >
                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-600">Click to upload documents</span>
-                    <span className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</span>
+                    <span className="text-sm text-gray-600">
+                      Click to upload documents
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PDF, JPG, PNG up to 10MB
+                    </span>
                   </label>
                 </div>
 
                 {documents.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      >
                         <div className="flex items-center">
                           <FileText className="w-4 h-4 text-gray-500 mr-2" />
-                          <span className="text-sm text-gray-700">{doc.name}</span>
+                          <span className="text-sm text-gray-700">
+                            {doc.name}
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -281,7 +349,7 @@ export default function CustomerForm({ customer, onSave, onCancel }: CustomerFor
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {customer ? 'Update Customer' : 'Add Customer'}
+              {customer ? "Update Customer" : "Add Customer"}
             </button>
           </div>
         </form>

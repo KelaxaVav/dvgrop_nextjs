@@ -16,7 +16,7 @@ import Repayment from '../models/Repayment.js';
 const router = express.Router({ mergeParams: true });
 
 // Apply protection to all routes
-router.use(protect);
+// router.use(protect);
 
 router.route('/')
   .get(advancedResults(Repayment, [

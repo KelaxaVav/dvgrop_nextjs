@@ -12,9 +12,9 @@ export default function LoanManager() {
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
 
   const filteredLoans = loans.filter(loan => {
-    const customer = customers.find(c => c.id === loan.customerId);
+    const customer = customers.find(c => c._id === loan.customerId._id);
     const matchesSearch = customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         loan.id.includes(searchTerm) ||
+                         loan._id.includes(searchTerm) ||
                          loan.purpose.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || loan.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -55,7 +55,7 @@ export default function LoanManager() {
         createdAt: loanData.createdDate ? new Date(loanData.createdDate).toISOString() : selectedLoan.createdAt
       };
       delete (updateData as any).createdDate; // Remove the temporary field
-      updateLoan(selectedLoan.id, updateData);
+      updateLoan(selectedLoan._id, updateData);
     } else {
       // For new loans, use the provided creation date or current date
       const newLoanData = {
@@ -161,13 +161,13 @@ export default function LoanManager() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredLoans.map((loan) => {
-                const customer = customers.find(c => c.id === loan.customerId);
+                const customer = customers.find(c => c._id === loan.customerId._id);
                 return (
-                  <tr key={loan.id} className="hover:bg-gray-50">
+                  <tr key={loan._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{customer?.name}</div>
-                        <div className="text-sm text-gray-500">ID: {loan.id}</div>
+                        <div className="text-sm text-gray-500">ID: {loan._id}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -222,7 +222,7 @@ export default function LoanManager() {
                         {loan.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => updateLoan(loan.id, { 
+                              onClick={() => updateLoan(loan._id, { 
                                 status: 'approved', 
                                 approvedDate: new Date().toISOString(),
                                 approvedAmount: loan.requestedAmount
@@ -233,7 +233,7 @@ export default function LoanManager() {
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => updateLoan(loan.id, { 
+                              onClick={() => updateLoan(loan._id, { 
                                 status: 'rejected',
                                 remarks: 'Rejected by system'
                               })}
@@ -285,7 +285,7 @@ export default function LoanManager() {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-3">Loan Information</h4>
                   <div className="space-y-2 text-sm">
-                    <div><span className="text-gray-600">Loan ID:</span> {selectedLoan.id}</div>
+                    <div><span className="text-gray-600">Loan ID:</span> {selectedLoan._id}</div>
                     <div><span className="text-gray-600">Type:</span> {selectedLoan.type}</div>
                     <div><span className="text-gray-600">Purpose:</span> {selectedLoan.purpose}</div>
                     <div><span className="text-gray-600">Requested Amount:</span> LKR {selectedLoan.requestedAmount.toLocaleString()}</div>
@@ -302,7 +302,7 @@ export default function LoanManager() {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-3">Customer Information</h4>
                   {(() => {
-                    const customer = customers.find(c => c.id === selectedLoan.customerId);
+                    const customer = customers.find(c => c._id === selectedLoan.customerId._id);
                     return customer ? (
                       <div className="space-y-2 text-sm">
                         <div><span className="text-gray-600">Name:</span> {customer.name}</div>

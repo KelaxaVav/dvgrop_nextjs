@@ -154,7 +154,7 @@ function generateLoans(customers) {
           type,
           description: `${type} - ${['New', 'Used', 'Excellent condition', 'Good condition'][Math.floor(Math.random() * 4)]}`,
           value: Math.floor(requestedAmount * (Math.random() + 1)), // 100% to 200% of requested amount
-          ownership: Math.random() > 0.7 ? 'Joint' : 'Sole'
+          // ownership: Math.random() > 0.7 ? 'Joint' : 'Sole'
         };
       }
     }

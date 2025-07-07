@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ErrorResponse from '../utils/errorResponse.js';
 import asyncHandler from '../middleware/async.js';
 import EmailContact from '../models/EmailContact.js';
@@ -168,7 +169,7 @@ export const getEmailSyncConfig = asyncHandler(async (req, res, next) => {
         enabled: true,
         provider: 'internal',
         syncOnCustomerRegistration: true,
-        syncOnLoanApproval: false
+        syncOnLoanApproval: true
       },
       group: 'notification',
       updatedBy: req.user.id

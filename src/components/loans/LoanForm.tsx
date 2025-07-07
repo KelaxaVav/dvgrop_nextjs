@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Calculator, Upload, FileText } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { Loan, Customer } from '../../types';
+import axios from 'axios';
 
 interface LoanFormProps {
   loan?: Loan;
@@ -30,7 +31,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
     collateralType: loan?.collateral?.type || '',
     collateralDescription: loan?.collateral?.description || '',
     collateralValue: loan?.collateral?.value || 0,
-    collateralOwnership: loan?.collateral?.ownership || '',
+    // collateralOwnership: loan?.collateral?.ownership || '',
     sendSMS: true
   });
 
@@ -78,7 +79,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
     calculateSimpleInterestEMI();
   }, [formData.requestedAmount, formData.interestRate, formData.period, formData.periodUnit]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     
     // Convert period to months for storage (standardized storage format)
@@ -113,10 +114,26 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
         type: formData.collateralType,
         description: formData.collateralDescription,
         value: formData.collateralValue,
-        ownership: formData.collateralOwnership
+        // ownership: formData.collateralOwnership
       } : undefined
     };
+   try {
+        const token = localStorage.getItem("token"); // Adjust key name if different
 
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+        const response = await axios.post(
+          "http://localhost:5000/api/v1/loans",
+          loanData,
+          { headers }
+        );
+        console.log("Loan saved:", response.data.data);
+        // onSave(response.data.data); // optionally close form after save
+      } catch (error) {
+        console.error("Error saving customer:", error);
+      }
     onSave(loanData as any);
   };
 
@@ -236,7 +253,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 >
                   <option value="">Select Customer</option>
                   {customers.map(customer => (
-                    <option key={customer.id} value={customer.id}>
+                    <option key={customer._id} value={customer._id}>
                       {customer.name} - {customer.nic}
                     </option>
                   ))}

@@ -25,10 +25,10 @@ export default function LoanPaymentManager() {
     );
 
     return activeLoans.map(loan => {
-      const customer = customers.find(c => c.id === loan.customerId);
+      const customer = customers.find(c => c._id === loan.customerId._id);
       
       // Get all repayments for this loan
-      const loanRepayments = repayments.filter(r => r.loanId === loan.id);
+      const loanRepayments = repayments.filter(r => r.loanId === loan._id);
       
       // Find the next pending or overdue payment
       const pendingPayments = loanRepayments
@@ -103,7 +103,7 @@ export default function LoanPaymentManager() {
   // Filter payments based on search and filters
   const filteredPayments = paymentData.filter(payment => {
     const matchesSearch = payment.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.loan.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.loan._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          payment.customer?.phone.includes(searchTerm);
     
     const matchesStatus = statusFilter === 'all' || 
@@ -440,13 +440,13 @@ export default function LoanPaymentManager() {
       {/* Loan List */}
       <div className="space-y-4">
         {filteredPayments.map((payment) => (
-          <div key={payment.loan.id} className={`bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow ${getPriorityColor(payment)}`}>
+          <div key={payment.loan._id} className={`bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow ${getPriorityColor(payment)}`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-3">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800">{payment.customer?.name}</h3>
-                    <p className="text-sm text-gray-600">Loan: {payment.loan.id} • {payment.loan.type} loan</p>
+                    <p className="text-sm text-gray-600">Loan: {payment.loan._id} • {payment.loan.type} loan</p>
                   </div>
                   {getStatusBadge(payment)}
                 </div>
@@ -528,7 +528,7 @@ export default function LoanPaymentManager() {
                   </button>
                 )}
                 <button
-                  onClick={() => handleViewHistory(payment.loan.id)}
+                  onClick={() => handleViewHistory(payment.loan._id)}
                   className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
                 >
                   <Calendar className="w-4 h-4 mr-2" />

@@ -59,10 +59,10 @@ const CollateralSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  ownership: {
-    type: String,
-    required: true
-  }
+  // ownership: {
+  //   type: String,
+  //   required: true
+  // }
 });
 
 const LoanSchema = new mongoose.Schema({
@@ -150,7 +150,10 @@ const LoanSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  // loan_id: {
+  //   type: String,
+  // }
 });
 
 // Set updatedAt date before saving

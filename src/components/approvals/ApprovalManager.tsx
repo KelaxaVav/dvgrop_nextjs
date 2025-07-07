@@ -31,7 +31,7 @@ export default function ApprovalManager() {
   const stats = getApprovalStats();
 
   const handleApprove = (loan: Loan, approvedAmount: number, remarks?: string) => {
-    updateLoan(loan.id, {
+    updateLoan(loan._id, {
       status: 'approved',
       approvedAmount,
       approvedBy: user?.name,
@@ -43,7 +43,7 @@ export default function ApprovalManager() {
   };
 
   const handleReject = (loan: Loan, remarks: string) => {
-    updateLoan(loan.id, {
+    updateLoan(loan._id, {
       status: 'rejected',
       approvedBy: user?.name,
       approvedDate: new Date().toISOString(),
@@ -54,8 +54,8 @@ export default function ApprovalManager() {
   };
 
   const getCustomerRiskLevel = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    const customerLoans = loans.filter(l => l.customerId === customerId);
+    const customer = customers.find(c => c._id === customerId);
+    const customerLoans = loans.filter(l => l.customerId._id === customerId);
     
     if (!customer) return 'unknown';
     
@@ -177,11 +177,11 @@ export default function ApprovalManager() {
         <div className="p-6">
           <div className="space-y-4">
             {pendingLoans.map((loan) => {
-              const customer = customers.find(c => c.id === loan.customerId);
-              const riskLevel = getCustomerRiskLevel(loan.customerId);
+              const customer = customers.find(c => c._id === loan.customerId._id);
+              const riskLevel = getCustomerRiskLevel(loan.customerId._id);
               
               return (
-                <div key={loan.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={loan._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-3">
@@ -300,7 +300,7 @@ export default function ApprovalManager() {
       {showDetails && selectedLoan && (
         <ApprovalDetails
           loan={selectedLoan}
-          customer={customers.find(c => c.id === selectedLoan.customerId)}
+          customer={customers.find(c => c._id === selectedLoan.customerId._id)}
           onApprove={handleApprove}
           onReject={handleReject}
           onClose={() => {

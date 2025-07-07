@@ -17,7 +17,7 @@ export default function Dashboard() {
   const stats = {
     totalCustomers: customers.length,
     totalLoans: loans.length,
-    activeLoans: loans.filter(l => l.status === 'active').length,
+    activeLoans: loans.filter(l => l.status === 'approved').length,
     pendingApprovals: loans.filter(l => l.status === 'pending').length,
     totalDisbursed: loans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0),
     overduePayments: repayments.filter(r => r.status === 'overdue').length,
@@ -102,9 +102,9 @@ export default function Dashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {recentLoans.map((loan) => {
-                const customer = customers.find(c => c.id === loan.customerId);
+                const customer = customers.find(c => c._id === loan.customerId._id);
                 return (
-                  <div key={loan.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={loan._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900">{customer?.name}</p>
                       <p className="text-sm text-gray-600">LKR {loan.requestedAmount.toLocaleString()}</p>
@@ -132,8 +132,8 @@ export default function Dashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {upcomingPayments.map((payment) => {
-                const loan = loans.find(l => l.id === payment.loanId);
-                const customer = customers.find(c => c.id === loan?.customerId);
+                const loan = loans.find(l => l._id === payment.loanId);
+                const customer = customers.find(c => c._id === loan?.customerId._id);
                 const isOverdue = new Date(payment.dueDate) < new Date();
                 
                 return (
