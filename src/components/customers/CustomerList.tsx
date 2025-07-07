@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Plus, Edit, Eye, Trash2, Phone, Mail, Users } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { Customer } from '../../types';
+import axios from 'axios';
+import { setCustomers } from '../../redux/customer_slice';
+import { useDispatch } from "react-redux"
 
 interface CustomerListProps {
   onAddCustomer: () => void;
@@ -13,6 +16,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
   const { customers, deleteCustomer } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,6 +28,45 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
     deleteCustomer(id);
     setDeleteConfirm(null);
   };
+
+  const fetchCustomers = async () => {
+    {
+      try {
+        const token = localStorage.getItem("token");
+
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+
+        const response = await axios.get(
+          "http://localhost:5000/api/v1/customers",
+          { headers }
+        );
+
+        console.log("Fetched customers:", response.data);
+        //  dispatch(
+        //             setCustomers({
+        //                 data: response.data.data,
+        //                 total: response.data.count
+        //             })
+        //         );
+
+        return response.data.data; 
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+        return []; // return empty array or null in case of failure
+      }
+    }
+  }
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const data = await fetchCustomers();
+      // setCustomers(data);
+    };
+
+    loadCustomers();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -63,17 +106,16 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCustomers.map((customer) => (
-              <div key={customer.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={customer._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 text-lg">{customer.name}</h3>
                     <p className="text-sm text-gray-600">NIC: {customer.nic}</p>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    customer.maritalStatus === 'married' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${customer.maritalStatus === 'married'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                    }`}>
                     {customer.maritalStatus}
                   </span>
                 </div>
@@ -114,7 +156,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => setDeleteConfirm(customer.id)}
+                      onClick={() => setDeleteConfirm(customer._id)}
                       className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                       title="Delete Customer"
                     >
