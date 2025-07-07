@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  FileText, 
-  CheckCircle, 
-  DollarSign, 
-  Calendar, 
-  BarChart3, 
-  Settings, 
-  Menu, 
+import {
+  Users,
+  FileText,
+  CheckCircle,
+  DollarSign,
+  Calendar,
+  BarChart3,
+  Settings,
+  Menu,
   X,
   LogOut,
   Shield,
@@ -45,8 +45,8 @@ const menuItems = [
 
 export default function Layout({ children, currentPage, onPageChange }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-   const user = useSelector((state: ReduxState) => state.auth.user);
-   
+  const user = useSelector((state: ReduxState) => state.auth.user);
+
   const canAccess = (menuId: string) => {
     if (user?.role === 'admin') return true;
     if (user?.role === 'officer' && ['dashboard', 'customers', 'loans', 'approvals', 'disbursements', 'repayments', 'payments', 'daily-payments', 'notifications', 'contacts', 'reports', 'settings'].includes(menuId)) return true;
@@ -55,14 +55,15 @@ export default function Layout({ children, currentPage, onPageChange }: LayoutPr
   };
 
   const filteredMenuItems = menuItems.filter(item => canAccess(item.id));
-const dispatch = useDispatch();
-const navigate = useNavigate();
-const handleLogout = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     dispatch(logoutAction());
     navigate('/login');
-};
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
@@ -71,9 +72,8 @@ const handleLogout = () => {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
         <div className="flex items-center justify-between p-6 border-b">
           <h1 className="text-xl font-bold text-gray-800">LoanManager Pro</h1>
           <button
@@ -94,11 +94,10 @@ const handleLogout = () => {
                   onPageChange(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center px-6 py-3 text-left transition-colors ${
-                  currentPage === item.id
+                className={`w-full flex items-center px-6 py-3 text-left transition-colors ${currentPage === item.id
                     ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                     : 'text-gray-700 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Icon className="w-5 h-5 mr-3" />
                 {item.label}
@@ -140,18 +139,18 @@ const handleLogout = () => {
             >
               <Menu className="w-6 h-6" />
             </button>
-            
+
             <h2 className="text-lg font-semibold text-gray-800 capitalize">
               {currentPage.replace('-', ' ')}
             </h2>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </div>
             </div>
