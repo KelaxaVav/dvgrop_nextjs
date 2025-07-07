@@ -1,24 +1,9 @@
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
-import Layout from './components/Layout';
-import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import CustomerManager from './components/customers/CustomerManager';
-import LoanManager from './components/loans/LoanManager';
-import ApprovalManager from './components/approvals/ApprovalManager';
-import DisbursementManager from './components/disbursements/DisbursementManager';
-import RepaymentManager from './components/repayments/RepaymentManager';
-import LoanPaymentManager from './components/payments/LoanPaymentManager';
-import DailyPaymentView from './components/payments/DailyPaymentView';
-import ReportsManager from './components/reports/ReportsManager';
-import UserManager from './components/users/UserManager';
-import SMSManager from './components/notifications/SMSManager';
-import ContactManager from './components/contacts/ContactManager';
-import SettingsManager from './components/settings/SettingsManager';
-import { useState } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ProtectedRoute from './layout/protected_route';
 import DefaultLayout from './layout/default_layout';
+import Login from './components/login/Login';
 
 // function AppContent() {
 //   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -93,11 +78,6 @@ export default function App() {
     },
   ]);
   return (
-        // <AppContent />
-    // <DataProvider>
-    //   <AuthProvider>
-    //   </AuthProvider>
-    // </DataProvider>
     <RouterProvider router={router} />
   );
 }

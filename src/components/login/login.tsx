@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { useForm } from 'react-hook-form';
-import { LoginFormValues } from '../form_values/form_value';
-import { useLogin, usePasswordToggle } from './login/login_service';
+import { LoginFormValues } from '../../form_values/form_value';
+import { useLogin, usePasswordToggle } from './login_service';
 
 export default function Login() {
   const [error, setError] = useState('');
@@ -12,24 +11,6 @@ export default function Login() {
   const { register, handleSubmit} = useForm<LoginFormValues>();
   const { showPassword, togglePasswordVisibility } = usePasswordToggle();
     const { onSubmit } = useLogin();
-
-  // const onSumbit = async (data: any) => {
-  //   setError('');
-  //   setLoading(true);
-
-  //   try {
-  //     const success = await useLogin(data.username, data.password);
-  //     console.log({ 'sucess': success });
-
-  //     if (!success) {
-  //       setError('Invalid username or password');
-  //     }
-  //   } catch (err) {
-  //     setError('An error occurred. Please try again.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
