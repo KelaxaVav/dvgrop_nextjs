@@ -1,47 +1,42 @@
-import React from 'react';
 import { 
   Users, 
   FileText, 
   DollarSign, 
   Calendar, 
-  TrendingUp, 
   AlertTriangle,
-  CheckCircle,
   Clock
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 
 export default function Dashboard() {
-  const { customers, loans, repayments } = useData();
+  // const { customers, loans, repayments } = useData();
 
-  const stats = {
-    totalCustomers: customers.length,
-    totalLoans: loans.length,
-    activeLoans: loans.filter(l => l.status === 'approved').length,
-    pendingApprovals: loans.filter(l => l.status === 'pending').length,
-    totalDisbursed: loans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0),
-    overduePayments: repayments.filter(r => r.status === 'overdue').length,
-    monthlyCollection: repayments
-      .filter(r => r.status === 'paid' && r.paymentDate && 
-        new Date(r.paymentDate).getMonth() === new Date().getMonth())
-      .reduce((sum, r) => sum + (r.paidAmount || 0), 0)
-  };
+  // const stats = {
+  //   totalCustomers: customers.length,
+  //   totalLoans: loans.length,
+  //   activeLoans: loans.filter(l => l.status === 'approved').length,
+  //   pendingApprovals: loans.filter(l => l.status === 'pending').length,
+  //   totalDisbursed: loans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0),
+  //   overduePayments: repayments.filter(r => r.status === 'overdue').length,
+  //   monthlyCollection: repayments
+  //     .filter(r => r.status === 'paid' && r.paymentDate && 
+  //       new Date(r.paymentDate).getMonth() === new Date().getMonth())
+  //     .reduce((sum, r) => sum + (r.paidAmount || 0), 0)
+  // };
 
-  const recentLoans = loans.slice(-5).reverse();
-  const upcomingPayments = repayments
-    .filter(r => r.status === 'pending')
-    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-    .slice(0, 5);
+  // const recentLoans = loans.slice(-5).reverse();
+  // const upcomingPayments = repayments
+  //   .filter(r => r.status === 'pending')
+  //   .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+  //   .slice(0, 5);
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">Welcome to LoanManager Pro</h1>
         <p className="text-blue-100">Your comprehensive loan management solution</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center">
@@ -50,7 +45,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
+              {/* <p className="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p> */}
             </div>
           </div>
         </div>
@@ -62,7 +57,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Loans</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.activeLoans}</p>
+              {/* <p className="text-2xl font-bold text-gray-900">{stats.activeLoans}</p> */}
             </div>
           </div>
         </div>
@@ -74,7 +69,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending Approvals</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingApprovals}</p>
+              {/* <p className="text-2xl font-bold text-gray-900">{stats.pendingApprovals}</p> */}
             </div>
           </div>
         </div>
@@ -86,7 +81,7 @@ export default function Dashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Disbursed</p>
-              <p className="text-2xl font-bold text-gray-900">LKR {stats.totalDisbursed.toLocaleString()}</p>
+              {/* <p className="text-2xl font-bold text-gray-900">LKR {stats.totalDisbursed.toLocaleString()}</p> */}
             </div>
           </div>
         </div>
@@ -101,7 +96,7 @@ export default function Dashboard() {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {recentLoans.map((loan) => {
+              {/* {recentLoans.map((loan) => {
                 const customer = customers.find(c => c._id === loan.customerId._id);
                 return (
                   <div key={loan._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -119,7 +114,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                 );
-              })}
+              })} */}
             </div>
           </div>
         </div>
@@ -131,7 +126,7 @@ export default function Dashboard() {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {upcomingPayments.map((payment) => {
+              {/* {upcomingPayments.map((payment) => {
                 const loan = loans.find(l => l._id === payment.loanId);
                 const customer = customers.find(c => c._id === loan?.customerId._id);
                 const isOverdue = new Date(payment.dueDate) < new Date();
@@ -153,7 +148,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 );
-              })}
+              })} */}
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import Layout from './components/Layout';
@@ -16,10 +15,13 @@ import UserManager from './components/users/UserManager';
 import SMSManager from './components/notifications/SMSManager';
 import ContactManager from './components/contacts/ContactManager';
 import SettingsManager from './components/settings/SettingsManager';
+import { useState } from 'react';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
+console.log({'currentPage':currentPage});
+console.log({'isAuthenticated':isAuthenticated});
 
   if (!isAuthenticated) {
     return <Login />;
