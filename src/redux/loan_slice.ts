@@ -3,12 +3,12 @@ import { ILoan } from "../types/loan";
 
 export interface LoanState {
     loans: ILoan[],
-    total:null
+    count:null
 }
 
 const initialState: LoanState = {
     loans: [],
-    total: null
+    count: null
 };
 
 export const loanSlice = createSlice({
@@ -16,9 +16,9 @@ export const loanSlice = createSlice({
     initialState,
     reducers: {
         setLoans(state, action) {
-            const { data, total } = action.payload;
+            const { data, count } = action.payload;
             state.loans = data;
-            state.total =total;
+            state.count =count;
         },
     }
 })

@@ -3,12 +3,12 @@ import { ICustomer } from "../types/customer";
 
 export interface CustomerState {
     customers: ICustomer[],
-    total:null
+    count:null
 }
 
 const initialState: CustomerState = {
     customers: [],
-    total: null
+    count: null
 };
 
 export const customerSlice = createSlice({
@@ -16,9 +16,9 @@ export const customerSlice = createSlice({
     initialState,
     reducers: {
         setCustomers(state, action) {
-            const { data, total } = action.payload;
+            const { data, count } = action.payload;
             state.customers = data;
-            state.total =total;
+            state.count =count;
         },
         setCustomer(state, action) {
             const { data } = action.payload;

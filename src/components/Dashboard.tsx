@@ -3,20 +3,18 @@ import {
   FileText,
   DollarSign,
   Calendar,
-  AlertTriangle,
   Clock
 } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchLoans } from '../utils/fetch';
+import { fetchCustomers, fetchLoans } from '../utils/fetch';
 import { ReduxState } from '../types/redux_state';
 
 export default function Dashboard() {
   // const { customers, loans, repayments } = useData();
   const dispatch = useDispatch();
-  const { loans, total: totalLoans } = useSelector((state: ReduxState) => state.loan);
-  const { customers, total: totalCustomers } = useSelector((state: ReduxState) => state.customer);
+  const { loans, count: totalLoans } = useSelector((state: ReduxState) => state.loan);
+  const { customers, count: totalCustomers } = useSelector((state: ReduxState) => state.customer);
 
   console.log({ 'loans': loans });
   const stats = {
@@ -42,6 +40,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchLoans(dispatch);
+    fetchCustomers(dispatch);
   }, [dispatch]);
 
   return (

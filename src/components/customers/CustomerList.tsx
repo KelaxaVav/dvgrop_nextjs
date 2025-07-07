@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Search, Plus, Edit, Eye, Trash2, Phone, Mail, Users } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
 import { Customer } from '../../types';
 import axios from 'axios';
 import { setCustomers } from '../../redux/customer_slice';
@@ -13,10 +12,43 @@ interface CustomerListProps {
 }
 
 export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCustomer }: CustomerListProps) {
-  const { customers, deleteCustomer } = useData();
+  // const { customers, deleteCustomer } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const dispatch = useDispatch();
+  const customers = [
+ {
+    _id: "1",
+    name: "Kamal Perera",
+    nic: "199012345678",
+    dob: "1990-05-15",
+    address: "No. 123, Galle Road, Colombo 03",
+    phone: "+94771234567",
+    email: "kamal@email.com",
+    maritalStatus: "married",
+    occupation: "Business Owner",
+    income: 75000,
+    bankAccount: "1234567890",
+    documents: [],
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z",
+  },
+  {
+    _id: "2",
+    name: "Nimal Silva",
+    nic: "198509876543",
+    dob: "1985-12-20",
+    address: "No. 456, Kandy Road, Peradeniya",
+    phone: "+94779876543",
+    email: "nimal@email.com",
+    maritalStatus: "single",
+    occupation: "Government Employee",
+    income: 50000,
+    documents: [],
+    createdAt: "2024-01-02T00:00:00Z",
+    updatedAt: "2024-01-02T00:00:00Z",
+  },
+]
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -25,7 +57,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
   );
 
   const handleDelete = (id: string) => {
-    deleteCustomer(id);
+    // deleteCustomer(id);
     setDeleteConfirm(null);
   };
 
@@ -142,14 +174,14 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
                 <div className="flex items-center justify-between pt-3 border-t">
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => onViewCustomer(customer)}
+                      // onClick={() => onViewCustomer(customer)}
                       className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="View Details"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => onEditCustomer(customer)}
+                      // onClick={() => onEditCustomer(customer)}
                       className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                       title="Edit Customer"
                     >
