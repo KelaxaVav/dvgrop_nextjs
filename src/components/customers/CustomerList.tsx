@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Search, Plus, Edit, Eye, Trash2, Phone, Mail, Users } from 'lucide-react';
 import { Customer } from '../../types';
+import { useDispatch, useSelector } from "react-redux"
+import { ReduxState } from '../../types/redux_state';
+import { fetchCustomers } from '../../utils/fetch';
 import axios from 'axios';
-import { setCustomers } from '../../redux/customer_slice';
-import { useDispatch } from "react-redux"
+import Http from '../../utils/http';
+import { API_ROUTES } from '../../utils/api_routes';
 
 interface CustomerListProps {
   onAddCustomer: () => void;
@@ -12,43 +15,10 @@ interface CustomerListProps {
 }
 
 export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCustomer }: CustomerListProps) {
-  // const { customers, deleteCustomer } = useData();
+  const { customers, count } = useSelector((state: ReduxState) => state.customer);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const dispatch = useDispatch();
-  const customers = [
- {
-    _id: "1",
-    name: "Kamal Perera",
-    nic: "199012345678",
-    dob: "1990-05-15",
-    address: "No. 123, Galle Road, Colombo 03",
-    phone: "+94771234567",
-    email: "kamal@email.com",
-    maritalStatus: "married",
-    occupation: "Business Owner",
-    income: 75000,
-    bankAccount: "1234567890",
-    documents: [],
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-  },
-  {
-    _id: "2",
-    name: "Nimal Silva",
-    nic: "198509876543",
-    dob: "1985-12-20",
-    address: "No. 456, Kandy Road, Peradeniya",
-    phone: "+94779876543",
-    email: "nimal@email.com",
-    maritalStatus: "single",
-    occupation: "Government Employee",
-    income: 50000,
-    documents: [],
-    createdAt: "2024-01-02T00:00:00Z",
-    updatedAt: "2024-01-02T00:00:00Z",
-  },
-]
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,49 +26,27 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
     customer.phone.includes(searchTerm)
   );
 
-  const handleDelete = (id: string) => {
-    // deleteCustomer(id);
-    setDeleteConfirm(null);
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await Http.get(`${API_ROUTES.CUSTOMERS}/${id}`);
+      if (response.data.success) {
+        setDeleteConfirm(null);
+        fetchCustomers(dispatch)
+      }
+
+      // Optionally refresh the list
+      // window.location.reload(); // or re-fetch customers
+    } catch (error) {
+      alert("Failed to delete customer.");
+    }
   };
 
-  const fetchCustomers = async () => {
-    {
-      try {
-        const token = localStorage.getItem("token");
 
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
-
-        const response = await axios.get(
-          "http://localhost:5000/api/v1/customers",
-          { headers }
-        );
-
-        console.log("Fetched customers:", response.data);
-        //  dispatch(
-        //             setCustomers({
-        //                 data: response.data.data,
-        //                 total: response.data.count
-        //             })
-        //         );
-
-        return response.data.data; 
-      } catch (error) {
-        console.error("Error fetching customers:", error);
-        return []; // return empty array or null in case of failure
-      }
-    }
-  }
   useEffect(() => {
-    const loadCustomers = async () => {
-      const data = await fetchCustomers();
-      // setCustomers(data);
-    };
 
-    loadCustomers();
-  }, []);
+    fetchCustomers(dispatch);
+
+  }, [dispatch]);
 
   return (
     <div className="space-y-6">
@@ -174,14 +122,14 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
                 <div className="flex items-center justify-between pt-3 border-t">
                   <div className="flex space-x-2">
                     <button
-                      // onClick={() => onViewCustomer(customer)}
+                      onClick={() => onViewCustomer(customer)}
                       className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       title="View Details"
                     >
                       <Eye className="w-4 h-4" />
                     </button>
                     <button
-                      // onClick={() => onEditCustomer(customer)}
+                      onClick={() => onEditCustomer(customer)}
                       className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                       title="Edit Customer"
                     >

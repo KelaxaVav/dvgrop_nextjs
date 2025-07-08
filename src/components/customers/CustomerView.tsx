@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, Phone, Mail, MapPin, Briefcase, DollarSign, Calendar, FileText, Download } from 'lucide-react';
 import { Customer } from '../../types';
 
@@ -23,12 +22,11 @@ export default function CustomerView({ customer, onClose, onEdit }: CustomerView
         </div>
 
         <div className="p-6">
-          {/* Customer Header */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl mb-6">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">{customer.name}</h3>
-                <p className="text-gray-600">Customer ID: {customer.id}</p>
+                <p className="text-gray-600">Customer ID: {customer._id}</p>
                 <p className="text-gray-600">NIC: {customer.nic}</p>
               </div>
               <div className="text-right">
@@ -40,7 +38,7 @@ export default function CustomerView({ customer, onClose, onEdit }: CustomerView
                   {customer.maritalStatus}
                 </span>
                 <p className="text-sm text-gray-600 mt-2">
-                  Member since {new Date(customer.createdAt).toLocaleDateString()}
+                  Member since {new Date(customer.createdAt).toLocaleDateString()}  
                 </p>
               </div>
             </div>

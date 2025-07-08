@@ -1,17 +1,28 @@
+export interface ICustomerDocument {
+  _id: string;
+  name: string;
+  type: string;
+  url: string;
+  uploadedAt: string; 
+}
+
 export interface ICustomer {
   _id: string;
   name: string;
   nic: string;
-  dob: string;
+  dob: string; 
   address: string;
   phone: string;
-  email : string;
-  maritalStatus : string;
-  occupation : string;
-  income:number;
-  bankAccount:string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  email: string;
+  maritalStatus: 'single' | 'married'; 
+  occupation: string;
+  income: number;
+  bankAccount: string;
+  documents: any[];
+  createdBy: string;
+  createdAt: string; 
+  updatedAt: string; 
+  __v: number;
 }
+
 

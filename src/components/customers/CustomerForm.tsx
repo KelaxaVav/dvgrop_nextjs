@@ -9,7 +9,7 @@ interface CustomerFormProps {
   onSave: (customer: Omit<Customer, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
 }
-
+type MaritalStatus = "single" | "married";
 export default function CustomerForm({
   customer,
   onSave,
