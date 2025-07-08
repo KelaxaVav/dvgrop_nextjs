@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileText, Plus, Search, Filter, Eye, Edit, Check, X } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
-import { Loan } from '../../types';
 import LoanForm from './LoanForm';
+import { fetchCustomers, fetchLoans } from '../../utils/fetch';
+import { useDispatch, useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
+import { ILoan } from '../../types/loan';
 
 export default function LoanManager() {
-  const { loans, customers, updateLoan, addLoan } = useData();
+  const dispatch = useDispatch();
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedLoan, setSelectedLoan] = useState<ILoan | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
 
   const filteredLoans = loans.filter(loan => {
     const customer = customers.find(c => c._id === loan.customerId._id);
     const matchesSearch = customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         loan._id.includes(searchTerm) ||
-                         loan.purpose.toLowerCase().includes(searchTerm.toLowerCase());
+      loan._id.includes(searchTerm) ||
+      loan.purpose.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || loan.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  useEffect(() => {
+    fetchLoans(dispatch);
+    fetchCustomers(dispatch);
+  }, [dispatch]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -37,33 +46,31 @@ export default function LoanManager() {
     setCurrentView('add');
   };
 
-  const handleEditLoan = (loan: Loan) => {
+  const handleEditLoan = (loan: ILoan) => {
     setSelectedLoan(loan);
     setCurrentView('edit');
   };
 
-  const handleViewLoan = (loan: Loan) => {
+  const handleViewLoan = (loan: ILoan) => {
     setSelectedLoan(loan);
     setCurrentView('view');
   };
 
-  const handleSaveLoan = (loanData: Omit<Loan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate?: string }) => {
+  const handleSaveLoan = (loanData: Omit<ILoan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate?: string }) => {
     if (currentView === 'edit' && selectedLoan) {
-      // For editing, preserve original creation date unless explicitly changed
       const updateData = {
         ...loanData,
         createdAt: loanData.createdDate ? new Date(loanData.createdDate).toISOString() : selectedLoan.createdAt
       };
-      delete (updateData as any).createdDate; // Remove the temporary field
-      updateLoan(selectedLoan._id, updateData);
+      delete (updateData as any).createdDate; 
+      // updateLoan(selectedLoan._id, updateData);
     } else {
-      // For new loans, use the provided creation date or current date
       const newLoanData = {
         ...loanData,
         createdAt: loanData.createdDate ? new Date(loanData.createdDate).toISOString() : new Date().toISOString()
       };
-      delete (newLoanData as any).createdDate; // Remove the temporary field
-      addLoan(newLoanData);
+      delete (newLoanData as any).createdDate;
+      // addLoan(newLoanData);
     }
     setCurrentView('list');
     setSelectedLoan(null);
@@ -86,13 +93,12 @@ export default function LoanManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Loan Management</h2>
           <p className="text-gray-600">Manage loan applications and approvals</p>
         </div>
-        <button 
+        <button
           onClick={handleAddLoan}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
         >
@@ -101,7 +107,6 @@ export default function LoanManager() {
         </button>
       </div>
 
-      {/* Search and Filters */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -133,7 +138,6 @@ export default function LoanManager() {
         </div>
       </div>
 
-      {/* Loan List */}
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -212,7 +216,7 @@ export default function LoanManager() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleEditLoan(loan)}
                           className="text-gray-600 hover:text-gray-900"
                           title="Edit Loan"
@@ -222,21 +226,21 @@ export default function LoanManager() {
                         {loan.status === 'pending' && (
                           <>
                             <button
-                              onClick={() => updateLoan(loan._id, { 
-                                status: 'approved', 
-                                approvedDate: new Date().toISOString(),
-                                approvedAmount: loan.requestedAmount
-                              })}
+                              // onClick={() => updateLoan(loan._id, {
+                              //   status: 'approved',
+                              //   approvedDate: new Date().toISOString(),
+                              //   approvedAmount: loan.requestedAmount
+                              // })}
                               className="text-green-600 hover:text-green-900"
                               title="Approve Loan"
                             >
                               <Check className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => updateLoan(loan._id, { 
-                                status: 'rejected',
-                                remarks: 'Rejected by system'
-                              })}
+                              // onClick={() => updateLoan(loan._id, {
+                              //   status: 'rejected',
+                              //   remarks: 'Rejected by system'
+                              // })}
                               className="text-red-600 hover:text-red-900"
                               title="Reject Loan"
                             >
@@ -258,8 +262,8 @@ export default function LoanManager() {
             <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">No loans found</h3>
             <p className="text-gray-500">
-              {searchTerm || statusFilter !== 'all' 
-                ? 'Try adjusting your search criteria' 
+              {searchTerm || statusFilter !== 'all'
+                ? 'Try adjusting your search criteria'
                 : 'No loan applications have been submitted yet'}
             </p>
           </div>
@@ -279,7 +283,7 @@ export default function LoanManager() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

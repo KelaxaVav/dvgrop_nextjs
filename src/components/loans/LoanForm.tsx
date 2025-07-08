@@ -1,40 +1,45 @@
 import React, { useState } from 'react';
-import { X, Calculator, Upload, FileText } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
-import { Loan, Customer } from '../../types';
-import axios from 'axios';
+import { X, Calculator } from 'lucide-react';
+import { ILoan } from '../../types/loan';
+import { Controller, useForm } from 'react-hook-form';
+import { LoanFormInputs } from '../../form_values/loan_form_input';
+import Select from "react-select";
+import { useSelectionOptions } from '../../custom_component/selection_options';
+import DocumentUpload from './document';
 
 interface LoanFormProps {
-  loan?: Loan;
-  onSave: (loan: Omit<Loan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate?: string }) => void;
+  loan?: ILoan;
+  onSave: (loan: Omit<ILoan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate?: string }) => void;
   onCancel: () => void;
 }
 
-export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
-  const { customers } = useData();
-  const [formData, setFormData] = useState({
-    customerId: loan?.customerId || '',
-    type: loan?.type || 'personal',
-    requestedAmount: loan?.requestedAmount || 0,
-    interestRate: loan?.interestRate || 10, // 10% per month
-    period: loan?.period || 12,
-    periodUnit: 'months', // New field for period unit
-    purpose: loan?.purpose || '',
-    status: loan?.status || 'pending',
-    createdDate: loan?.createdAt ? loan.createdAt.split('T')[0] : new Date().toISOString().split('T')[0], // Add creation date field
-    guarantorName: loan?.guarantor?.name || '',
-    guarantorNic: loan?.guarantor?.nic || '',
-    guarantorPhone: loan?.guarantor?.phone || '',
-    guarantorAddress: loan?.guarantor?.address || '',
-    guarantorOccupation: loan?.guarantor?.occupation || '',
-    guarantorIncome: loan?.guarantor?.income || 0,
-    collateralType: loan?.collateral?.type || '',
-    collateralDescription: loan?.collateral?.description || '',
-    collateralValue: loan?.collateral?.value || 0,
-    // collateralOwnership: loan?.collateral?.ownership || '',
-    sendSMS: true
-  });
+export default function LoanForm({ loan, onCancel }: LoanFormProps) {
+  const { customerOptions, loanTypeOptions, periodUnitOptions } = useSelectionOptions();
 
+  const { register, handleSubmit, control, watch } = useForm<LoanFormInputs>({
+    defaultValues: {
+      customerId: typeof loan?.customerId === 'string' ? loan?.customerId : loan?.customerId?._id || '',
+      type: loan?.type || 'personal',
+      requestedAmount: loan?.requestedAmount || 0,
+      interestRate: loan?.interestRate || 10,
+      period: loan?.period || 12,
+      periodUnit: 'months',
+      purpose: loan?.purpose || '',
+      status: loan?.status || 'pending',
+      createdDate: loan?.createdAt ? loan.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+      guarantorName: loan?.guarantor?.name || '',
+      guarantorNic: loan?.guarantor?.nic || '',
+      guarantorPhone: loan?.guarantor?.phone || '',
+      guarantorAddress: loan?.guarantor?.address || '',
+      guarantorOccupation: loan?.guarantor?.occupation || '',
+      guarantorIncome: loan?.guarantor?.income || 0,
+      collateralType: loan?.collateral?.type || '',
+      collateralDescription: loan?.collateral?.description || '',
+      collateralValue: loan?.collateral?.value || 0,
+      sendSMS: true
+    }
+  });
+  const formData = watch();
   const [documents, setDocuments] = useState(loan?.documents || []);
   const [emi, setEmi] = useState(loan?.emi || 0);
   const [totalInstallments, setTotalInstallments] = useState(0);
@@ -43,32 +48,29 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
 
   const calculateSimpleInterestEMI = () => {
     const { requestedAmount, interestRate, period, periodUnit } = formData;
-    
+
     if (requestedAmount && interestRate && period) {
       let installments = period;
       let periodInMonths = period;
-      
-      // Convert period to months for interest calculation
+
       if (periodUnit === 'days') {
-        periodInMonths = period / 30; // Convert days to months
-        installments = period; // Number of daily payments
+        periodInMonths = period / 30;
+        installments = period;
       } else if (periodUnit === 'weeks') {
-        periodInMonths = period / 4.33; // Convert weeks to months (4.33 weeks per month)
-        installments = period; // Number of weekly payments
+        periodInMonths = period / 4.33;
+        installments = period;
       } else {
-        periodInMonths = period; // Already in months
-        installments = period; // Number of monthly payments
+        periodInMonths = period;
+        installments = period;
       }
 
       setTotalInstallments(installments);
 
-      // Simple Interest Formula: Total Amount = Principal + (Principal × Rate × Time)
       const simpleInterest = requestedAmount * (interestRate / 100) * periodInMonths;
       const totalAmountWithInterest = requestedAmount + simpleInterest;
-      
-      // EMI = Total Amount / Number of Installments
+
       const calculatedEmi = totalAmountWithInterest / installments;
-      
+
       setEmi(Math.round(calculatedEmi));
       setTotalAmount(Math.round(totalAmountWithInterest));
       setTotalInterest(Math.round(simpleInterest));
@@ -79,63 +81,88 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
     calculateSimpleInterestEMI();
   }, [formData.requestedAmount, formData.interestRate, formData.period, formData.periodUnit]);
 
-  const handleSubmit = async(e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: any) => {
+    console.log({'daaa':data});
     
-    // Convert period to months for storage (standardized storage format)
-    let periodInMonths = formData.period;
-    if (formData.periodUnit === 'days') {
-      periodInMonths = Math.ceil(formData.period / 30);
-    } else if (formData.periodUnit === 'weeks') {
-      periodInMonths = Math.ceil(formData.period / 4.33);
-    }
-    
-    const loanData: Omit<Loan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate: string } = {
-      customerId: formData.customerId,
-      type: formData.type as any,
-      requestedAmount: formData.requestedAmount,
-      interestRate: formData.interestRate,
-      period: periodInMonths, // Store in months for consistency
-      emi: emi,
-      startDate: new Date().toISOString().split('T')[0],
-      purpose: formData.purpose,
-      status: formData.status as any,
-      documents: documents,
-      createdDate: formData.createdDate, // Include creation date
-      guarantor: formData.guarantorName ? {
-        name: formData.guarantorName,
-        nic: formData.guarantorNic,
-        phone: formData.guarantorPhone,
-        address: formData.guarantorAddress,
-        occupation: formData.guarantorOccupation,
-        income: formData.guarantorIncome
-      } : undefined,
-      collateral: formData.collateralType ? {
-        type: formData.collateralType,
-        description: formData.collateralDescription,
-        value: formData.collateralValue,
-        // ownership: formData.collateralOwnership
-      } : undefined
-    };
-   try {
-        const token = localStorage.getItem("token"); // Adjust key name if different
+    // let periodInMonths = data.period;
+    // if (data.periodUnit === 'days') {
+    //   periodInMonths = Math.ceil(data.period / 30);
+    // } else if (data.periodUnit === 'weeks') {
+    //   periodInMonths = Math.ceil(data.period / 4.33);
+    // }
 
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
-        const response = await axios.post(
-          "http://localhost:5000/api/v1/loans",
-          loanData,
-          { headers }
-        );
-        console.log("Loan saved:", response.data.data);
-        // onSave(response.data.data); // optionally close form after save
-      } catch (error) {
-        console.error("Error saving customer:", error);
-      }
-    onSave(loanData as any);
+    // const selectedCustomer = customers.find(c => c._id === data.customerId);
+
+    // if (!selectedCustomer) {
+    //   alert('Customer not found');
+    //   return;
+    // }
+
+    // const loanData: Omit<ILoan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate: string } = {
+    //   customerId: selectedCustomer,
+    //   type: data.type,
+    //   requestedAmount: data.requestedAmount,
+    //   interestRate: data.interestRate,
+    //   period: periodInMonths,
+    //   emi: emi,
+    //   startDate: new Date().toISOString().split('T')[0],
+    //   purpose: data.purpose,
+    //   status: data.status,
+    //   documents: documents,
+    //   createdDate: data.createdDate,
+    //   guarantor: data.guarantorName ? {
+    //     name: data.guarantorName,
+    //     nic: data.guarantorNic,
+    //     phone: data.guarantorPhone,
+    //     address: data.guarantorAddress,
+    //     occupation: data.guarantorOccupation,
+    //     income: data.guarantorIncome,
+    //     _id: ''
+    //   } : {
+    //     name: '',
+    //     nic: '',
+    //     phone: '',
+    //     address: '',
+    //     occupation: '',
+    //     income: 0,
+    //     _id: ''
+    //   },
+    //   collateral: data.collateralType ? {
+    //     type: data.collateralType,
+    //     description: data.collateralDescription,
+    //     value: data.collateralValue,
+    //     _id: ''
+    //   } : {
+    //     type: '',
+    //     description: '',
+    //     value: 0,
+    //     _id: ''
+    //   },
+    //   _id: '',
+    //   createdBy: {
+    //     _id: '',
+    //     name: ''
+    //   },
+    //   loan_id: '',
+    //   approvedAmount: 0,
+    //   updated_at: '',
+    //   deleted_at: null
+    // };
+
+    // try {
+    //   const token = localStorage.getItem("token");
+    //   const headers = {
+    //     "Content-Type": "application/json",
+    //     Authorization: `Bearer ${token}`,
+    //   };
+    //   const response = await axios.post("http://localhost:5000/api/v1/loans", loanData, { headers });
+    //   console.log("Loan saved:", response.data.data);
+    //   onSave(loanData);
+    // } catch (error) {
+    //   console.error("Error saving loan:", error);
+    // }
   };
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -188,7 +215,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
   // Example calculation for verification
   const getExampleCalculation = () => {
     const { requestedAmount, interestRate, period, periodUnit } = formData;
-    
+
     if (requestedAmount === 50000 && interestRate === 10 && period === 1 && periodUnit === 'months') {
       return {
         principal: 50000,
@@ -198,13 +225,13 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
         isExample: true
       };
     }
-    
+
     if (requestedAmount === 50000 && interestRate === 10 && period === 60 && periodUnit === 'days') {
       const periodInMonths = 60 / 30; // 2 months
       const interest = 50000 * 0.10 * periodInMonths; // 50000 × 10% × 2 months = 10000
       const total = 50000 + interest; // 60000
       const dailyEmi = total / 60; // 1000 per day
-      
+
       return {
         principal: 50000,
         interest: interest,
@@ -214,7 +241,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
         isExample: true
       };
     }
-    
+
     return null;
   };
 
@@ -235,29 +262,36 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Basic Loan Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Loan Details</h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Customer *
                 </label>
-                <select
-                  required
-                  value={formData.customerId}
-                  onChange={(e) => setFormData({...formData, customerId: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select Customer</option>
-                  {customers.map(customer => (
-                    <option key={customer._id} value={customer._id}>
-                      {customer.name} - {customer.nic}
-                    </option>
-                  ))}
-                </select>
+                <Controller
+                  name="customerId"
+                  control={control}
+                  rules={{ required: "Customer is required" }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={customerOptions}
+                      onChange={(selectedOption) => {
+                        field.onChange(selectedOption ? selectedOption.value : '');
+                      }}
+                      value={
+                        customerOptions.find(option => option.value === field.value) || null
+                      }
+                      isClearable
+                      placeholder="Select Customer"
+                      classNamePrefix="react-select"
+                    />
+                  )}
+                />
               </div>
 
               <div>
@@ -266,11 +300,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="date"
-                  required
-                  value={formData.createdDate}
-                  onChange={(e) => setFormData({...formData, createdDate: e.target.value})}
+                  {...register("createdDate", { required: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
                 <p className="text-xs text-gray-500 mt-1">
                   Date when the loan application was submitted
                 </p>
@@ -281,16 +314,14 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                   Loan Type *
                 </label>
                 <select
-                  required
-                  value={formData.type}
-                  onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  {...register("type", { required: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="personal">Personal Loan</option>
-                  <option value="business">Business Loan</option>
-                  <option value="agriculture">Agriculture Loan</option>
-                  <option value="vehicle">Vehicle Loan</option>
-                  <option value="housing">Housing Loan</option>
+                  {loanTypeOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -300,9 +331,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="number"
-                  required
-                  value={formData.requestedAmount}
-                  onChange={(e) => setFormData({...formData, requestedAmount: Number(e.target.value)})}
+                  {...register('requestedAmount', { required: true, valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -314,9 +343,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 <input
                   type="number"
                   step="0.01"
-                  required
-                  value={formData.interestRate}
-                  onChange={(e) => setFormData({...formData, interestRate: Number(e.target.value)})}
+                  {...register('interestRate', { required: true, valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 mt-1">
@@ -331,25 +358,25 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                   </label>
                   <input
                     type="number"
-                    required
-                    value={formData.period}
-                    onChange={(e) => setFormData({...formData, period: Number(e.target.value)})}
+                    {...register('period', { required: true, valueAsNumber: true })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Unit *
                   </label>
                   <select
-                    required
-                    value={formData.periodUnit}
-                    onChange={(e) => setFormData({...formData, periodUnit: e.target.value})}
+                    {...register("periodUnit", { required: true })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+
                   >
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                    <option value="months">Months</option>
+                    {periodUnitOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -362,21 +389,17 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                   Purpose *
                 </label>
                 <textarea
-                  required
+                  {...register('purpose', { required: true })}
                   rows={3}
-                  value={formData.purpose}
-                  onChange={(e) => setFormData({...formData, purpose: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
-              {/* SMS Notification */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="sendSMS"
-                  checked={formData.sendSMS}
-                  onChange={(e) => setFormData({ ...formData, sendSMS: e.target.checked })}
+                  {...register('sendSMS')}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="sendSMS" className="ml-2 block text-sm text-gray-900">
@@ -384,7 +407,6 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
               </div>
 
-              {/* EMI Calculator */}
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center mb-2">
                   <Calculator className="w-5 h-5 text-blue-600 mr-2" />
@@ -400,7 +422,6 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </div>
               </div>
 
-              {/* Simple Interest Formula Display */}
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                 <h5 className="font-medium text-green-800 mb-2">✅ Simple Interest Formula:</h5>
                 <div className="text-sm text-green-700 space-y-1">
@@ -408,7 +429,7 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                   <p><strong>Total = Principal + Interest</strong></p>
                   <p><strong>EMI = Total ÷ Installments</strong></p>
                   <hr className="my-2 border-green-300" />
-                  <p>Interest = {formData.requestedAmount.toLocaleString()} × {formData.interestRate}% × {formData.periodUnit === 'days' ? (formData.period/30).toFixed(2) : formData.periodUnit === 'weeks' ? (formData.period/4.33).toFixed(2) : formData.period} months</p>
+                  <p>Interest = {formData.requestedAmount.toLocaleString()} × {formData.interestRate}% × {formData.periodUnit === 'days' ? (formData.period / 30).toFixed(2) : formData.periodUnit === 'weeks' ? (formData.period / 4.33).toFixed(2) : formData.period} months</p>
                   <p>Interest = LKR {totalInterest.toLocaleString()}</p>
                   <p>Total = LKR {totalAmount.toLocaleString()}</p>
                   <p>EMI = LKR {emi.toLocaleString()} per {formData.periodUnit.slice(0, -1)}</p>
@@ -433,20 +454,19 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
               )}
             </div>
 
-            {/* Guarantor Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Guarantor Details</h3>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Guarantor Name
                 </label>
                 <input
                   type="text"
-                  value={formData.guarantorName}
-                  onChange={(e) => setFormData({...formData, guarantorName: e.target.value})}
+                  {...register('guarantorName')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -455,10 +475,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="text"
-                  value={formData.guarantorNic}
-                  onChange={(e) => setFormData({...formData, guarantorNic: e.target.value})}
+                  {...register('guarantorNic')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -467,10 +487,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="tel"
-                  value={formData.guarantorPhone}
-                  onChange={(e) => setFormData({...formData, guarantorPhone: e.target.value})}
+                  {...register('guarantorPhone')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -479,10 +499,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <textarea
                   rows={2}
-                  value={formData.guarantorAddress}
-                  onChange={(e) => setFormData({...formData, guarantorAddress: e.target.value})}
+                  {...register('guarantorAddress', { required: 'Guarantor address is required' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -491,10 +511,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="text"
-                  value={formData.guarantorOccupation}
-                  onChange={(e) => setFormData({...formData, guarantorOccupation: e.target.value})}
+                  {...register('guarantorOccupation')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -503,26 +523,26 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="number"
-                  value={formData.guarantorIncome}
-                  onChange={(e) => setFormData({...formData, guarantorIncome: Number(e.target.value)})}
+                  {...register('guarantorIncome', { valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               {/* Collateral Information */}
               <h4 className="text-md font-medium text-gray-800 border-b pb-2 mt-6">Collateral (Optional)</h4>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Collateral Type
                 </label>
                 <input
                   type="text"
-                  value={formData.collateralType}
-                  onChange={(e) => setFormData({...formData, collateralType: e.target.value})}
                   placeholder="e.g., Property, Vehicle, Gold"
+                  {...register('collateralType')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -531,10 +551,10 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <textarea
                   rows={2}
-                  value={formData.collateralDescription}
-                  onChange={(e) => setFormData({...formData, collateralDescription: e.target.value})}
+                  {...register('collateralDescription')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
 
               <div>
@@ -543,55 +563,16 @@ export default function LoanForm({ loan, onSave, onCancel }: LoanFormProps) {
                 </label>
                 <input
                   type="number"
-                  value={formData.collateralValue}
-                  onChange={(e) => setFormData({...formData, collateralValue: Number(e.target.value)})}
+                  {...register('collateralValue', { valueAsNumber: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+
               </div>
             </div>
 
             {/* Documents */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Documents</h3>
-              
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="loan-file-upload"
-                />
-                <label
-                  htmlFor="loan-file-upload"
-                  className="cursor-pointer flex flex-col items-center"
-                >
-                  <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="text-sm text-gray-600">Click to upload documents</span>
-                  <span className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</span>
-                </label>
-              </div>
-
-              {documents.length > 0 && (
-                <div className="space-y-2">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <FileText className="w-4 h-4 text-gray-500 mr-2" />
-                        <span className="text-sm text-gray-700">{doc.name}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeDocument(doc.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <DocumentUpload />
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="font-medium text-gray-800 mb-2">Required Documents:</h4>
