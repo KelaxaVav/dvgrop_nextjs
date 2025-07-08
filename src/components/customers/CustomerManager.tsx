@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Customer } from '../../types';
-import { useData } from '../../contexts/DataContext';
 import CustomerList from './CustomerList';
 import CustomerForm from './CustomerForm';
 import CustomerView from './CustomerView';
 
 export default function CustomerManager() {
-  // const { addCustomer, updateCustomer } = useData();
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
