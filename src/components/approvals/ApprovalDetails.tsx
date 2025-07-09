@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, CheckCircle, XCircle, FileText, Download, User, DollarSign, Calendar, AlertTriangle } from 'lucide-react';
 import { Loan, Customer } from '../../types';
 

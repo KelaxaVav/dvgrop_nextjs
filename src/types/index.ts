@@ -2,7 +2,7 @@ export interface Customer {
   _id: string;
   name: string;
   nic: string;
-  dob: string;
+  dob: string|Date;
   address: string;
   phone: string;
   email?: string;

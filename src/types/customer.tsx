@@ -14,7 +14,7 @@ export interface ICustomer {
   address: string;
   phone: string;
   email: string;
-  maritalStatus: 'single' | 'married'; 
+  maritalStatus: "single" | "married"; 
   occupation: string;
   income: number;
   bankAccount: string;

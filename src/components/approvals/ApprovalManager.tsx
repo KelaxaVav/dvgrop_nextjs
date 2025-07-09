@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, Clock, AlertTriangle, Eye, FileText, User, DollarSign } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 import { Loan } from '../../types';
 import ApprovalDetails from './ApprovalDetails';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 export default function ApprovalManager() {
-  const { loans, customers, updateLoan } = useData();
-  const { user } = useAuth();
+  const {  updateLoan } = useData();
+   const { customers, count: totalCustomers } = useSelector((state: ReduxState) => state.customer);
+   const { loans, count:totalLones } = useSelector((state: ReduxState) => state.loan);
+   const { user } = useSelector((state: ReduxState) => state.auth);
+  // const { user } = useAuth();
+
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');

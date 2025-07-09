@@ -6,24 +6,22 @@ import axios from "axios";
 
 interface CustomerFormProps {
   customer?: Customer;
-  onSave: (customer: Omit<Customer, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
 }
-type MaritalStatus = "single" | "married";
 export default function CustomerForm({
   customer,
-  onSave,
   onCancel,
 }: CustomerFormProps) {
   const { emailSyncConfig } = useData();
+  type MaritalStatus = "single" | "married";
   const [formData, setFormData] = useState({
     name: customer?.name || "",
     nic: customer?.nic || "",
-    dob: customer?.dob || "",
+    dob: customer?.dob ? new Date(customer.dob).toISOString().split('T')[0] : "",
     address: customer?.address || "",
     phone: customer?.phone || "",
     email: customer?.email || "",
-    maritalStatus: customer?.maritalStatus || "single",
+    maritalStatus: (customer?.maritalStatus || "single"),
     occupation: customer?.occupation || "",
     income: customer?.income || 0,
     bankAccount: customer?.bankAccount || "",
@@ -31,22 +29,30 @@ export default function CustomerForm({
   });
 
   const [documents, setDocuments] = useState(customer?.documents || []);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // onSave({
-    //   ...formData,
-    //   maritalStatus: formData.maritalStatus as 'married' | 'single',
-    //   documents
-    // });
+  try {
+    const token = localStorage.getItem("token");
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
 
-    try {
-      const token = localStorage.getItem("token"); // Adjust key name if different
+    if (customer) {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/customers/${customer._id}`,
+        {
+          ...formData,
+          maritalStatus: formData.maritalStatus as "married" | "single",
+          documents,
+        },
+        { headers }
+      );
+       onCancel();
+      console.log("Customer updated:", response.data);
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
+    } else {
       const response = await axios.post(
         "http://localhost:5000/api/v1/customers",
         {
@@ -56,12 +62,14 @@ export default function CustomerForm({
         },
         { headers }
       );
-      console.log("Customer saved:", response.data);
-      onSave(response.data.data); // optionally close form after save
-    } catch (error) {
-      console.error("Error saving customer:", error);
+       onCancel();
+      console.log("Customer created:", response.data);
     }
-  };
+  } catch (error) {
+    console.error("Error saving customer:", error);
+  }
+};
+
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -96,7 +104,6 @@ export default function CustomerForm({
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-800 border-b pb-2">
                 Personal Information
@@ -155,7 +162,7 @@ export default function CustomerForm({
                   required
                   value={formData.maritalStatus}
                   onChange={(e) =>
-                    setFormData({ ...formData, maritalStatus: e.target.value })
+                    setFormData({ ...formData, maritalStatus: e.target.value as MaritalStatus})
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >

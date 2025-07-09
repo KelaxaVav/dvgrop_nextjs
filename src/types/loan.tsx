@@ -3,14 +3,14 @@ import { ICustomer } from "./customer";
 export interface ILoan {
     _id: string;
     customerId: ICustomer;
-    type: string;
+    type: "personal" | "business" | "agriculture" | "vehicle" | "housing";
     requestedAmount: number;
     interestRate: number;
     period: number;
     emi: number;
     startDate: string;
     purpose: string;
-    status: string;
+    status: "pending" | "approved" | "rejected" | "disbursed" | "active" | "completed";
     guarantor?: Guarantor;
     collateral?: Collateral;
     documents:any[],
@@ -18,10 +18,10 @@ export interface ILoan {
         _id: string;
         name: string,
     };
-    loan_id?: string;
+    loan_id: string;
     approvedAmount?: number;
     createdAt: string;
-    updated_at: string;
+    updatedAt: string;
     deleted_at: string | null;
 }
 

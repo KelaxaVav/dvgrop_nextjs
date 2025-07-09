@@ -4,7 +4,6 @@ import { Customer } from '../../types';
 import { useDispatch, useSelector } from "react-redux"
 import { ReduxState } from '../../types/redux_state';
 import { fetchCustomers } from '../../utils/fetch';
-import axios from 'axios';
 import Http from '../../utils/http';
 import { API_ROUTES } from '../../utils/api_routes';
 
@@ -28,24 +27,18 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await Http.get(`${API_ROUTES.CUSTOMERS}/${id}`);
+      const response = await Http.delete(`${API_ROUTES.CUSTOMERS}/${id}`);
       if (response.data.success) {
         setDeleteConfirm(null);
         fetchCustomers(dispatch)
       }
-
-      // Optionally refresh the list
-      // window.location.reload(); // or re-fetch customers
     } catch (error) {
       alert("Failed to delete customer.");
     }
   };
 
-
   useEffect(() => {
-
     fetchCustomers(dispatch);
-
   }, [dispatch]);
 
   return (
@@ -162,6 +155,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
           )}
         </div>
       </div>
+      
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (

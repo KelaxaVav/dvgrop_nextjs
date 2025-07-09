@@ -1,12 +1,19 @@
-import  { useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { Customer } from '../../types';
 import CustomerList from './CustomerList';
 import CustomerForm from './CustomerForm';
 import CustomerView from './CustomerView';
+import { fetchCustomers } from '../../utils/fetch';
+import { useDispatch } from 'react-redux';
 
 export default function CustomerManager() {
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'view'>('list');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const dispatch=useDispatch();
+
+  useEffect(()=>{
+    fetchCustomers(dispatch)
+},[dispatch])
 
   const handleAddCustomer = () => {
     setSelectedCustomer(null);
@@ -23,15 +30,6 @@ export default function CustomerManager() {
     setCurrentView('view');
   };
 
-  // const handleSaveCustomer = (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-  //   if (currentView === 'edit' && selectedCustomer) {
-  //     updateCustomer(selectedCustomer.id, customerData);
-  //   } else {
-  //     addCustomer(customerData);
-  //   }
-  //   setCurrentView('list');
-  //   setSelectedCustomer(null);
-  // };
 
   const handleCancel = () => {
     setCurrentView('list');
@@ -55,7 +53,6 @@ export default function CustomerManager() {
       {(currentView === 'add' || currentView === 'edit') && (
         <CustomerForm
           customer={selectedCustomer || undefined}
-          onSave={()=>{}}
           onCancel={handleCancel}
         />
       )}
