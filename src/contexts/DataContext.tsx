@@ -16,10 +16,11 @@ import { setLoans } from "../redux/loan_slice";
 import Http from "../utils/http";
 import { API_ROUTES } from "../utils/api_routes";
 import { fetchCustomers, fetchLoans, fetchPayments, fetchUsers } from "../services/fetch";
+import { ILoan } from "../types/loan";
 
 interface DataContextType {
   customers: Customer[];
-  loans: Loan[];
+  loans: ILoan[];
   repayments: Repayment[];
   users: User[];
   loginLogs: LoginLog[];
@@ -30,8 +31,8 @@ interface DataContextType {
   ) => void;
   updateCustomer: (id: string, customer: Partial<Customer>) => void;
   deleteCustomer: (id: string) => void;
-  addLoan: (loan: Omit<Loan, "id" | "createdAt" | "updatedAt">) => void;
-  updateLoan: (id: string, loan: Partial<Loan>) => void;
+  addLoan: (loan: Omit<ILoan, "id" | "createdAt" | "updatedAt">) => void;
+  updateLoan: (id: string, loan: Partial<ILoan>) => void;
   addRepayment: (repayment: Omit<Repayment, "id">) => void;
   updateRepayment: (id: string, repayment: Partial<Repayment>) => void;
   generateLoanSchedule: (loanId: string) => void;
@@ -276,7 +277,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setLoans((prev:any) => [...prev, newLoan]);
   };
 
-  const updateLoan = async (id: string, updates: Partial<Loan>) => {
+  const updateLoan = async (id: string, updates: Partial<ILoan>) => {
     setLoans((prev:any) =>
       prev.map((loan:any) =>
         loan._id === id

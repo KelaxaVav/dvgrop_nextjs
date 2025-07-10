@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
-import { DollarSign, Search, Filter, Calendar, AlertTriangle, CheckCircle, Clock, CreditCard, Banknote, Building, Eye, Plus, Download } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { DollarSign, Search, Filter, Calendar, AlertTriangle, CheckCircle, Clock, Eye } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { Loan } from '../../types';
 import LoanPaymentForm from './LoanPaymentForm';
 import PaymentDetails from './PaymentDetails';
 import PaymentHistory from './PaymentHistory';
+import { Repayment } from '../../types';
+import { useDispatch, useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
+import { fetchCustomers, fetchLoans } from '../../services/fetch';
+
+type PaymentDataType = {
+  amount: number;
+  paymentDate: string | Date;
+  paymentMode: string;
+  penalty?: number;
+  remarks?: string;
+};
 
 export default function LoanPaymentManager() {
-  const { loans, customers, repayments, updateRepayment } = useData();
-  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const { repayments, updateRepayment } = useData();
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [amountFilter, setAmountFilter] = useState('all');
@@ -17,44 +29,44 @@ export default function LoanPaymentManager() {
   const [selectedRepayment, setSelectedRepayment] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'list' | 'payment' | 'details' | 'history'>('list');
 
-  // Get all active loans with their current payment status
+
+  useEffect(() => {
+    fetchLoans(dispatch);
+    fetchCustomers(dispatch);
+  }, [dispatch]);
+
   const getPaymentData = () => {
-    // Get all active and disbursed loans
-    const activeLoans = loans.filter(loan => 
+    const activeLoans = loans.filter(loan =>
       loan.status === 'active' || loan.status === 'disbursed'
     );
 
     return activeLoans.map(loan => {
       const customer = customers.find(c => c._id === loan.customerId._id);
-      
-      // Get all repayments for this loan
+
       const loanRepayments = repayments.filter(r => r.loanId === loan._id);
-      
-      // Find the next pending or overdue payment
+
       const pendingPayments = loanRepayments
         .filter(r => r.status === 'pending' || r.status === 'partial')
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-      
+
       const nextPayment = pendingPayments[0];
-      
-      // Calculate loan statistics
+
       const totalPaid = loanRepayments
         .filter(r => r.status === 'paid')
         .reduce((sum, r) => sum + (r.paidAmount || 0), 0);
-      
+
       const totalOutstanding = loanRepayments
         .filter(r => r.status === 'pending' || r.status === 'partial')
         .reduce((sum, r) => sum + r.balance, 0);
-      
+
       const paidEMIs = loanRepayments.filter(r => r.status === 'paid').length;
       const totalEMIs = loanRepayments.length;
-      
-      // Determine overall loan payment status
+
       let loanPaymentStatus = 'current';
       let isOverdue = false;
       let daysOverdue = 0;
       let penalty = 0;
-      
+
       if (nextPayment) {
         isOverdue = new Date(nextPayment.dueDate) < new Date();
         if (isOverdue) {
@@ -67,7 +79,7 @@ export default function LoanPaymentManager() {
       } else if (totalEMIs > 0 && paidEMIs === totalEMIs) {
         loanPaymentStatus = 'completed';
       }
-      
+
       return {
         loan,
         customer,
@@ -88,12 +100,12 @@ export default function LoanPaymentManager() {
       if (a.loanPaymentStatus !== 'overdue' && b.loanPaymentStatus === 'overdue') return 1;
       if (a.loanPaymentStatus === 'due_today' && b.loanPaymentStatus !== 'due_today') return -1;
       if (a.loanPaymentStatus !== 'due_today' && b.loanPaymentStatus === 'due_today') return 1;
-      
+
       // If both have next payments, sort by due date
       if (a.nextPayment && b.nextPayment) {
         return new Date(a.nextPayment.dueDate).getTime() - new Date(b.nextPayment.dueDate).getTime();
       }
-      
+
       return 0;
     });
   };
@@ -103,21 +115,21 @@ export default function LoanPaymentManager() {
   // Filter payments based on search and filters
   const filteredPayments = paymentData.filter(payment => {
     const matchesSearch = payment.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.loan._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.customer?.phone.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'overdue' && payment.loanPaymentStatus === 'overdue') ||
-                         (statusFilter === 'due_today' && payment.loanPaymentStatus === 'due_today') ||
-                         (statusFilter === 'current' && payment.loanPaymentStatus === 'current') ||
-                         (statusFilter === 'completed' && payment.loanPaymentStatus === 'completed');
-    
+      payment.loan._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.customer?.phone.includes(searchTerm);
+
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'overdue' && payment.loanPaymentStatus === 'overdue') ||
+      (statusFilter === 'due_today' && payment.loanPaymentStatus === 'due_today') ||
+      (statusFilter === 'current' && payment.loanPaymentStatus === 'current') ||
+      (statusFilter === 'completed' && payment.loanPaymentStatus === 'completed');
+
     const nextPaymentAmount = payment.nextPayment?.amount || 0;
     const matchesAmount = amountFilter === 'all' ||
-                         (amountFilter === 'small' && nextPaymentAmount <= 10000) ||
-                         (amountFilter === 'medium' && nextPaymentAmount > 10000 && nextPaymentAmount <= 50000) ||
-                         (amountFilter === 'large' && nextPaymentAmount > 50000);
-    
+      (amountFilter === 'small' && nextPaymentAmount <= 10000) ||
+      (amountFilter === 'medium' && nextPaymentAmount > 10000 && nextPaymentAmount <= 50000) ||
+      (amountFilter === 'large' && nextPaymentAmount > 50000);
+
     return matchesSearch && matchesStatus && matchesAmount;
   });
 
@@ -177,12 +189,23 @@ export default function LoanPaymentManager() {
     setCurrentView('history');
   };
 
-  const handlePaymentSubmit = (paymentData: any) => {
+  const handlePaymentSubmit = (paymentData: PaymentDataType) => {
     if (selectedRepayment) {
-      const updatedRepayment = {
+      const normalizedPaymentDate = paymentData.paymentDate instanceof Date
+        ? paymentData.paymentDate.toISOString()
+        : paymentData.paymentDate;
+
+      const allowedPaymentModes = ['cash', 'online', 'cheque'] as const;
+
+      const paymentMode: 'cash' | 'online' | 'cheque' | undefined =
+        allowedPaymentModes.includes(paymentData.paymentMode as any)
+          ? paymentData.paymentMode as 'cash' | 'online' | 'cheque'
+          : undefined;
+
+      const updatedRepayment: Partial<Repayment> = {
         paidAmount: paymentData.amount,
-        paymentDate: paymentData.paymentDate,
-        paymentMode: paymentData.paymentMode,
+        paymentDate: normalizedPaymentDate,
+        paymentMode,
         status: paymentData.amount >= selectedRepayment.balance ? 'paid' : 'partial',
         balance: Math.max(0, selectedRepayment.balance - paymentData.amount),
         penalty: paymentData.penalty || 0,
@@ -191,19 +214,20 @@ export default function LoanPaymentManager() {
 
       updateRepayment(selectedRepayment.id, updatedRepayment);
     }
-    
+
     setCurrentView('list');
     setSelectedRepayment(null);
   };
 
-  const getPaymentModeIcon = (mode: string) => {
-    switch (mode) {
-      case 'cash': return <Banknote className="w-4 h-4" />;
-      case 'online': return <Building className="w-4 h-4" />;
-      case 'cheque': return <CreditCard className="w-4 h-4" />;
-      default: return <DollarSign className="w-4 h-4" />;
-    }
-  };
+
+  // const getPaymentModeIcon = (mode: string) => {
+  //   switch (mode) {
+  //     case 'cash': return <Banknote className="w-4 h-4" />;
+  //     case 'online': return <Building className="w-4 h-4" />;
+  //     case 'cheque': return <CreditCard className="w-4 h-4" />;
+  //     default: return <DollarSign className="w-4 h-4" />;
+  //   }
+  // };
 
   const getPriorityColor = (payment: any) => {
     switch (payment.loanPaymentStatus) {
