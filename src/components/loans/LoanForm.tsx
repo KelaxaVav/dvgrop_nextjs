@@ -15,9 +15,9 @@ import { API_ROUTES } from '../../utils/api_routes';
 import { subscribeLoading } from '../../utils/loading';
 import PageLoader from '../../custom_component/loading';
 import { Atom, Commet } from 'react-loading-indicators';
+import { fetchLoans } from '../../services/fetch';
 
 interface LoanFormProps {
-  // loan?: ILoan;
   onCancel: () => void;
   isEditMode: boolean;
   loanId?: string;
@@ -149,10 +149,11 @@ export default function LoanForm({ onCancel, isEditMode, loanId }: LoanFormProps
         await Http.post(`${API_ROUTES.LOANS}`, loanData);
       }
       fetchLoans(dispatch);
-      onCancel();
       showToastSuccess('Loan', isEditMode);
+      onCancel();
     } catch (error) {
       showToastError('Error saving loan')
+
     }
   };
 

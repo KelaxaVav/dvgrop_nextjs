@@ -80,6 +80,7 @@ interface UpdateLoanStatusPayload {
   remarks?: string;
   approvedDate?: string;
   approvedAmount?: number;
+  approvedBy?:string
 }
 
 export async function updateLoanStatus(

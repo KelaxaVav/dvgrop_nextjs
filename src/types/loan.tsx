@@ -14,7 +14,10 @@ export interface ILoan {
     guarantor?: Guarantor;
     collateral?: Collateral;
     documents: Document[];
-    approvedBy?: string;
+    approvedBy?: {
+        _id: string;
+        name: string,
+    };
     approvedDate?: string;
     disbursedDate?: string;
     disbursedAmount?: number;
@@ -51,7 +54,7 @@ export interface Guarantor {
     _id: string
 }
 export interface Document {
-    id: string;
+    _id: string;
     name: string;
     type: string;
     url: string;

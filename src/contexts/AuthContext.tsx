@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const { addLoginLog, updateUser } = useData();
+  // const { addLoginLog, updateUser } = useData();
  const dispatch = useDispatch();
    const isAuthenticated = useSelector((state: ReduxState) => state.auth.isAuthenticated);
   useEffect(() => {
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = JSON.parse(savedUser);
       setUser(userData);
       // setIsAuthenticated(true);
-      updateUser(userData.id, { isOnline: true });
+      // updateUser(userData.id, { isOnline: true });
     }
   }, []);
 
@@ -59,35 +59,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const foundUser = user;
 
     if (!foundUser) {
-      addLoginLog({
-        userId: "unknown",
-        loginTime: new Date().toISOString(),
-        ...clientInfo,
-        status: "failed",
-        failureReason: "User not found",
-      });
+      // addLoginLog({
+      //   userId: "unknown",
+      //   loginTime: new Date().toISOString(),
+      //   ...clientInfo,
+      //   status: "failed",
+      //   failureReason: "User not found",
+      // });
       return false;
     }
 
     if (foundUser.isLocked) {
-      addLoginLog({
-        userId: foundUser._id,
-        loginTime: new Date().toISOString(),
-        ...clientInfo,
-        status: "locked",
-        failureReason: "Account locked",
-      });
+      // addLoginLog({
+      //   userId: foundUser._id,
+      //   loginTime: new Date().toISOString(),
+      //   ...clientInfo,
+      //   status: "locked",
+      //   failureReason: "Account locked",
+      // });
       return false;
     }
 
     if (!foundUser.isActive) {
-      addLoginLog({
-        userId: foundUser._id,
-        loginTime: new Date().toISOString(),
-        ...clientInfo,
-        status: "failed",
-        failureReason: "Account inactive",
-      });
+      // addLoginLog({
+      //   userId: foundUser._id,
+      //   loginTime: new Date().toISOString(),
+      //   ...clientInfo,
+      //   status: "failed",
+      //   failureReason: "Account inactive",
+      // });
       return false;
     }
 
@@ -135,21 +135,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // setIsAuthenticated(true);
     localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword));
 
-    updateUser(foundUser._id, {
-      lastLogin: loginTime,
-      isOnline: true,
-      failedLoginAttempts: 0,
-      sessionToken,
-      updatedAt: loginTime,
-    });
+    // updateUser(foundUser._id, {
+    //   lastLogin: loginTime,
+    //   isOnline: true,
+    //   failedLoginAttempts: 0,
+    //   sessionToken,
+    //   updatedAt: loginTime,
+    // });
 
-    addLoginLog({
-      userId: foundUser._id,
-      loginTime,
-      ...clientInfo,
-      status: "success",
-      sessionId: sessionToken,
-    });
+    // addLoginLog({
+    //   userId: foundUser._id,
+    //   loginTime,
+    //   ...clientInfo,
+    //   status: "success",
+    //   sessionId: sessionToken,
+    // });
 
     return true;
   };

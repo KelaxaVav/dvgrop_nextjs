@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
-import { CheckCircle, XCircle, Clock, AlertTriangle, Eye, FileText, User, DollarSign } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
-// import { useAuth } from '../../contexts/AuthContext';
-import { Loan } from '../../types';
+import { useEffect, useState } from 'react';
+import { CheckCircle, XCircle, Clock, Eye, FileText, DollarSign } from 'lucide-react';
+// import { Loan } from '../../types';
 import ApprovalDetails from './ApprovalDetails';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
+import { fetchLoans } from '../../services/fetch';
+import { updateLoanStatus } from '../../services/create';
+import { ILoan } from '../../types/loan';
+import { capitalizeFirstLetter } from '../../utils/utils';
 
 export default function ApprovalManager() {
-  const {  updateLoan } = useData();
-   const { customers, count: totalCustomers } = useSelector((state: ReduxState) => state.customer);
-   const { loans, count:totalLones } = useSelector((state: ReduxState) => state.loan);
-   const { user } = useSelector((state: ReduxState) => state.auth);
-  // const { user } = useAuth();
+  // const {  updateLoan } = useData();
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { user } = useSelector((state: ReduxState) => state.auth);
+  const dispatch = useDispatch();
 
-  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [selectedLoan, setSelectedLoan] = useState<ILoan | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
-
+  
   const pendingLoans = loans.filter(loan => {
     if (filter === 'all') return true;
     return loan.status === filter;
   });
+
+  useEffect(() => {
+    fetchLoans(dispatch);
+  }, [dispatch]);
 
   const getApprovalStats = () => {
     const pending = loans.filter(l => l.status === 'pending').length;
@@ -36,25 +42,25 @@ export default function ApprovalManager() {
 
   const stats = getApprovalStats();
 
-  const handleApprove = (loan: Loan, approvedAmount: number, remarks?: string) => {
-    updateLoan(loan._id, {
+  const handleApprove = (loan: ILoan, approvedAmount: number, remarks?: string) => {
+    updateLoanStatus(loan._id, {
       status: 'approved',
-      approvedAmount,
-      approvedBy: user?.name,
+      remarks,
       approvedDate: new Date().toISOString(),
-      remarks
-    });
+      approvedAmount:approvedAmount,
+      approvedBy: user?._id,
+    },dispatch);
     setShowDetails(false);
     setSelectedLoan(null);
   };
 
-  const handleReject = (loan: Loan, remarks: string) => {
-    updateLoan(loan._id, {
+  const handleReject = (loan: ILoan, remarks: string) => {
+    updateLoanStatus(loan._id, {
       status: 'rejected',
-      approvedBy: user?.name,
+      approvedBy: user?._id,
       approvedDate: new Date().toISOString(),
       remarks
-    });
+    },dispatch);
     setShowDetails(false);
     setSelectedLoan(null);
   };
@@ -62,14 +68,13 @@ export default function ApprovalManager() {
   const getCustomerRiskLevel = (customerId: string) => {
     const customer = customers.find(c => c._id === customerId);
     const customerLoans = loans.filter(l => l.customerId._id === customerId);
-    
+
     if (!customer) return 'unknown';
-    
-    // Simple risk assessment
+
     const hasActiveLoans = customerLoans.some(l => l.status === 'active');
     const hasDefaultHistory = customerLoans.some(l => l.status === 'rejected');
     const incomeRatio = customer.income;
-    
+
     if (hasDefaultHistory || incomeRatio < 30000) return 'high';
     if (hasActiveLoans || incomeRatio < 50000) return 'medium';
     return 'low';
@@ -93,9 +98,10 @@ export default function ApprovalManager() {
     }
   };
 
+  console.log({'selectedLoan':selectedLoan});
+  
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Loan Approvals</h2>
@@ -103,7 +109,6 @@ export default function ApprovalManager() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center">
@@ -112,7 +117,7 @@ export default function ApprovalManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending Approval</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.pending}</p>
             </div>
           </div>
         </div>
@@ -124,7 +129,7 @@ export default function ApprovalManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.approved}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.approved}</p>
             </div>
           </div>
         </div>
@@ -136,7 +141,7 @@ export default function ApprovalManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Rejected</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.rejected}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.rejected}</p>
             </div>
           </div>
         </div>
@@ -148,104 +153,100 @@ export default function ApprovalManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Approved</p>
-              <p className="text-2xl font-bold text-gray-900">LKR {stats.totalAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">LKR {stats?.totalAmount?.toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="border-b">
           <nav className="flex space-x-8 px-6">
             {[
-              { key: 'pending', label: 'Pending', count: stats.pending },
-              { key: 'approved', label: 'Approved', count: stats.approved },
-              { key: 'rejected', label: 'Rejected', count: stats.rejected },
-              { key: 'all', label: 'All Applications', count: loans.length }
+              { key: 'pending', label: 'Pending', count: stats?.pending },
+              { key: 'approved', label: 'Approved', count: stats?.approved },
+              { key: 'rejected', label: 'Rejected', count: stats?.rejected },
+              { key: 'all', label: 'All Applications', count: loans?.length }
             ].map((tab) => (
               <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  filter === tab.key
+                key={tab?.key}
+                onClick={() => setFilter(tab?.key as any)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${filter === tab?.key
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
-                {tab.label} ({tab.count})
+                {tab?.label} ({tab?.count})
               </button>
             ))}
           </nav>
         </div>
 
-        {/* Loan Applications List */}
         <div className="p-6">
           <div className="space-y-4">
-            {pendingLoans.map((loan) => {
-              const customer = customers.find(c => c._id === loan.customerId._id);
-              const riskLevel = getCustomerRiskLevel(loan.customerId._id);
-              
+            {pendingLoans?.map((loan) => {
+              const customer = customers?.find(c => c?._id === loan?.customerId?._id);
+              const riskLevel = getCustomerRiskLevel(loan?.customerId?._id);
+
               return (
-                <div key={loan._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={loan?._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-3">
-                        <h3 className="text-lg font-semibold text-gray-800">{customer?.name}</h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(loan.status)}`}>
-                          {loan.status}
+                        <h3 className="text-lg font-semibold text-gray-800">{capitalizeFirstLetter(customer?.name ??'')}</h3>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(loan?.status)}`}>
+                          {loan?.status}
                         </span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRiskColor(riskLevel)}`}>
                           {riskLevel} risk
                         </span>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                           <p className="text-sm text-gray-600">Loan Details</p>
-                          <p className="font-medium">LKR {loan.requestedAmount.toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">{loan.type} loan • {loan.period} months</p>
+                          <p className="font-medium">LKR {loan?.requestedAmount?.toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">{capitalizeFirstLetter(loan?.type)} loan • {loan?.period} months</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Customer Info</p>
                           <p className="font-medium">{customer?.nic}</p>
-                          <p className="text-sm text-gray-500">Income: LKR {customer?.income.toLocaleString()}/month</p>
+                          <p className="text-sm text-gray-500">Income: LKR {customer?.income?.toLocaleString()}/month</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Application Date</p>
-                          <p className="font-medium">{new Date(loan.createdAt).toLocaleDateString()}</p>
-                          <p className="text-sm text-gray-500">EMI: LKR {loan.emi.toLocaleString()}</p>
+                          <p className="font-medium">{new Date(loan?.createdAt)?.toLocaleDateString()}</p>
+                          <p className="text-sm text-gray-500">EMI: LKR {loan?.emi?.toLocaleString()}</p>
                         </div>
                       </div>
 
                       <div className="mb-4">
                         <p className="text-sm text-gray-600 mb-1">Purpose</p>
-                        <p className="text-gray-800">{loan.purpose}</p>
+                        <p className="text-gray-800">{capitalizeFirstLetter(loan?.purpose)}</p>
                       </div>
 
-                      {/* Quick Assessment */}
                       <div className="bg-gray-50 p-4 rounded-lg mb-4">
                         <h4 className="font-medium text-gray-800 mb-2">Quick Assessment</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="text-gray-600">Income Ratio:</span>
                             <span className="ml-1 font-medium">
-                              {customer ? Math.round((loan.emi / customer.income) * 100) : 0}%
+                              {customer ? Math.round((loan?.emi / customer?.income) * 100) : 0}%
                             </span>
                           </div>
                           <div>
                             <span className="text-gray-600">Loan-to-Income:</span>
                             <span className="ml-1 font-medium">
-                              {customer ? Math.round((loan.requestedAmount / (customer.income * 12)) * 100) : 0}%
+                              {customer ? Math.round((loan?.requestedAmount / (customer?.income * 12)) * 100) : 0}%
                             </span>
                           </div>
                           <div>
                             <span className="text-gray-600">Documents:</span>
-                            <span className="ml-1 font-medium">{loan.documents.length} files</span>
+                            <span className="ml-1 font-medium">{loan?.documents?.length} files</span>
                           </div>
                           <div>
                             <span className="text-gray-600">Guarantor:</span>
-                            <span className="ml-1 font-medium">{loan.guarantor ? 'Yes' : 'No'}</span>
+                            <span className="ml-1 font-medium">{loan?.guarantor ? 'Yes' : 'No'}</span>
                           </div>
                         </div>
                       </div>
@@ -262,11 +263,11 @@ export default function ApprovalManager() {
                         <Eye className="w-4 h-4 mr-2" />
                         Review
                       </button>
-                      
-                      {loan.status === 'pending' && user?.role !== 'clerk' && (
+
+                      {loan?.status === 'pending' && user?.role !== 'clerk' && (
                         <>
                           <button
-                            onClick={() => handleApprove(loan, loan.requestedAmount)}
+                            onClick={() => handleApprove(loan, loan?.requestedAmount)}
                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
                           >
                             <CheckCircle className="w-4 h-4 mr-2" />
@@ -288,13 +289,13 @@ export default function ApprovalManager() {
             })}
           </div>
 
-          {pendingLoans.length === 0 && (
+          {pendingLoans?.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No applications found</h3>
               <p className="text-gray-500">
-                {filter === 'pending' 
-                  ? 'No pending loan applications to review' 
+                {filter === 'pending'
+                  ? 'No pending loan applications to review'
                   : `No ${filter} loan applications found`}
               </p>
             </div>
@@ -302,11 +303,10 @@ export default function ApprovalManager() {
         </div>
       </div>
 
-      {/* Approval Details Modal */}
       {showDetails && selectedLoan && (
         <ApprovalDetails
           loan={selectedLoan}
-          customer={customers.find(c => c._id === selectedLoan.customerId._id)}
+          customer={customers?.find(c => c?._id === selectedLoan?.customerId._id)}
           onApprove={handleApprove}
           onReject={handleReject}
           onClose={() => {

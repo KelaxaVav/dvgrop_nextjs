@@ -264,26 +264,26 @@ export default function ContactManager() {
 
       {/* Sync Status Banner */}
       <div className={`p-4 rounded-lg border-2 ${
-        emailSyncConfig.enabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+        emailSyncConfig?.enabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            {emailSyncConfig.enabled ? (
+            {emailSyncConfig?.enabled ? (
               <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
             ) : (
               <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
             )}
             <div>
               <h3 className={`font-semibold ${
-                emailSyncConfig.enabled ? 'text-green-800' : 'text-yellow-800'
+                emailSyncConfig?.enabled ? 'text-green-800' : 'text-yellow-800'
               }`}>
-                {emailSyncConfig.enabled ? 'Contact Sync Enabled' : 'Contact Sync Disabled'}
+                {emailSyncConfig?.enabled ? 'Contact Sync Enabled' : 'Contact Sync Disabled'}
               </h3>
               <p className={`text-sm ${
-                emailSyncConfig.enabled ? 'text-green-600' : 'text-yellow-600'
+                emailSyncConfig?.enabled ? 'text-green-600' : 'text-yellow-600'
               }`}>
-                {emailSyncConfig.enabled 
-                  ? `Using ${emailSyncConfig.provider} provider • Last synced: ${
+                {emailSyncConfig?.enabled 
+                  ? `Using ${emailSyncConfig?.provider} provider • Last synced: ${
                       emailSyncConfig.lastSyncAt 
                         ? new Date(emailSyncConfig.lastSyncAt).toLocaleString() 
                         : 'Never'
@@ -296,7 +296,7 @@ export default function ContactManager() {
           <div className="flex space-x-3">
             <button
               onClick={handleSyncContacts}
-              disabled={isSyncing || !emailSyncConfig.enabled}
+              disabled={isSyncing || !emailSyncConfig?.enabled}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSyncing ? (
