@@ -13,7 +13,15 @@ export interface ILoan {
     status: "pending" | "approved" | "rejected" | "disbursed" | "active" | "completed";
     guarantor?: Guarantor;
     collateral?: Collateral;
-    documents:any[],
+    documents: Document[];
+    approvedBy?: string;
+    approvedDate?: string;
+    disbursedDate?: string;
+    disbursedAmount?: number;
+    disbursementMethod?: 'bank_transfer' | 'cash' | 'cheque';
+    disbursementReference?: string;
+    disbursedBy?: string;
+     remarks?: string;
     createdBy?: {
         _id: string;
         name: string,
@@ -41,4 +49,11 @@ export interface Guarantor {
     occupation: string;
     income: number;
     _id: string
+}
+export interface Document {
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+    uploadedAt: string;
 }

@@ -5,6 +5,7 @@ import { authSlice } from "./auth_slice";
 import { customerSlice } from "./customer_slice";
 import { loanSlice } from "./loan_slice";
 import { paymentSlice } from "./payment_slice";
+import { userSlice } from "./user_slice";
 
 const persistConfig = {
   key: 'root',
@@ -18,7 +19,8 @@ const persistedReducer = persistCombineReducers(persistConfig, {
   auth: authSlice.reducer,
   customer:customerSlice.reducer,
   loan:loanSlice.reducer,
-  payment:paymentSlice.reducer
+  payment:paymentSlice.reducer,
+  user:userSlice.reducer
 });
 
 const store = configureStore({

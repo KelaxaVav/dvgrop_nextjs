@@ -9,6 +9,11 @@ import {
   EmailSyncConfig,
 } from "../types";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { ReduxState } from "../types/redux_state";
+import { setCustomers } from "../redux/customer_slice";
+import { fetchCustomers, fetchLoans, fetchPayments, fetchUsers } from "../utils/fetch";
+import { setLoans } from "../redux/loan_slice";
 
 interface DataContextType {
   customers: Customer[];
@@ -44,272 +49,17 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Mock initial data
-const initialCustomers: Customer[] = [
-  {
-    _id: "1",
-    name: "Kamal Perera",
-    nic: "199012345678",
-    dob: "1990-05-15",
-    address: "No. 123, Galle Road, Colombo 03",
-    phone: "+94771234567",
-    email: "kamal@email.com",
-    maritalStatus: "married",
-    occupation: "Business Owner",
-    income: 75000,
-    bankAccount: "1234567890",
-    documents: [],
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-  },
-  {
-    _id: "2",
-    name: "Nimal Silva",
-    nic: "198509876543",
-    dob: "1985-12-20",
-    address: "No. 456, Kandy Road, Peradeniya",
-    phone: "+94779876543",
-    email: "nimal@email.com",
-    maritalStatus: "single",
-    occupation: "Government Employee",
-    income: 50000,
-    documents: [],
-    createdAt: "2024-01-02T00:00:00Z",
-    updatedAt: "2024-01-02T00:00:00Z",
-  },
-];
-
-const initialLoans: Loan[] = [
-  {
-    _id: "L001",
-    customerId: "1",
-    type: "business",
-    requestedAmount: 500000,
-    approvedAmount: 450000,
-    interestRate: 10,
-    period: 24,
-    emi: 22500,
-    startDate: "2024-02-01",
-    purpose: "Business Expansion",
-    status: "active",
-    approvedBy: "Loan Officer",
-    approvedDate: "2024-01-20T00:00:00Z",
-    disbursedDate: "2024-02-01T00:00:00Z",
-    disbursedAmount: 450000,
-    disbursementMethod: "bank_transfer",
-    disbursementReference: "BANK001234",
-    disbursedBy: "System Admin",
-    documents: [],
-    createdAt: "2024-01-15T00:00:00Z",
-    updatedAt: "2024-02-01T00:00:00Z",
-  },
-  {
-    _id: "L002",
-    customerId: "2",
-    type: "personal",
-    requestedAmount: 200000,
-    approvedAmount: 180000,
-    interestRate: 10,
-    period: 12,
-    emi: 16500,
-    startDate: "2024-03-01",
-    purpose: "Home Renovation",
-    status: "approved",
-    approvedBy: "Loan Officer",
-    approvedDate: "2024-02-20T00:00:00Z",
-    documents: [],
-    createdAt: "2024-02-15T00:00:00Z",
-    updatedAt: "2024-02-20T00:00:00Z",
-  },
-  {
-    _id: "L003",
-    customerId: "1",
-    type: "vehicle",
-    requestedAmount: 300000,
-    interestRate: 10,
-    period: 18,
-    emi: 18333,
-    startDate: "2024-04-01",
-    purpose: "Vehicle Purchase",
-    status: "pending",
-    documents: [],
-    createdAt: "2024-03-01T00:00:00Z",
-    updatedAt: "2024-03-01T00:00:00Z",
-  },
-];
-
-const initialRepayments: Repayment[] = [
-  {
-    id: "R001",
-    loanId: "L001",
-    emiNo: 1,
-    dueDate: "2024-03-01",
-    amount: 22500,
-    paidAmount: 22500,
-    balance: 0,
-    paymentDate: "2024-03-01",
-    paymentMode: "cash",
-    status: "paid",
-  },
-  {
-    id: "R002",
-    loanId: "L001",
-    emiNo: 2,
-    dueDate: "2024-04-01",
-    amount: 22500,
-    balance: 22500,
-    status: "pending",
-  },
-];
-
-const initialUsers: User[] = [
-  {
-    _id: "1",
-    username: "admin",
-    email: "admin@loanmanager.com",
-    role: "admin",
-    name: "System Administrator",
-    phone: "+94771234567",
-    isActive: true,
-    isOnline: false,
-    failedLoginAttempts: 0,
-    createdAt: "2024-01-01T00:00:00Z",
-    lastLogin: "2024-01-15T10:30:00Z",
-    department: "IT",
-    employeeId: "EMP001",
-    twoFactorEnabled: true,
-  },
-  {
-    _id: "2",
-    username: "officer",
-    email: "officer@loanmanager.com",
-    role: "officer",
-    name: "Loan Officer",
-    phone: "+94771234568",
-    isActive: true,
-    isOnline: true,
-    failedLoginAttempts: 0,
-    createdAt: "2024-01-01T00:00:00Z",
-    lastLogin: "2024-01-15T09:15:00Z",
-    department: "Loans",
-    employeeId: "EMP002",
-  },
-  {
-    _id: "3",
-    username: "clerk",
-    email: "clerk@loanmanager.com",
-    role: "clerk",
-    name: "Data Entry Clerk",
-    phone: "+94771234569",
-    isActive: true,
-    isOnline: false,
-    failedLoginAttempts: 1,
-    createdAt: "2024-01-01T00:00:00Z",
-    lastLogin: "2024-01-15T08:45:00Z",
-    department: "Operations",
-    employeeId: "EMP003",
-  },
-];
-
-const initialLoginLogs: LoginLog[] = [
-  {
-    id: "LOG001",
-    userId: "1",
-    loginTime: "2024-01-15T10:30:00Z",
-    logoutTime: "2024-01-15T16:45:00Z",
-    ipAddress: "192.168.1.100",
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    location: "Colombo, Sri Lanka",
-    status: "success",
-    sessionId: "sess_001",
-  },
-  {
-    id: "LOG002",
-    userId: "2",
-    loginTime: "2024-01-15T09:15:00Z",
-    ipAddress: "192.168.1.101",
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    location: "Kandy, Sri Lanka",
-    status: "success",
-    sessionId: "sess_002",
-  },
-  {
-    id: "LOG003",
-    userId: "3",
-    loginTime: "2024-01-15T08:45:00Z",
-    logoutTime: "2024-01-15T17:00:00Z",
-    ipAddress: "192.168.1.102",
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
-    location: "Galle, Sri Lanka",
-    status: "success",
-    sessionId: "sess_003",
-  },
-  {
-    id: "LOG004",
-    userId: "3",
-    loginTime: "2024-01-14T14:20:00Z",
-    ipAddress: "192.168.1.102",
-    userAgent:
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
-    location: "Galle, Sri Lanka",
-    status: "failed",
-    failureReason: "Invalid password",
-  },
-];
-
-// Initial email contacts based on existing customers
-const initialEmailContacts: EmailContact[] = [
-  {
-    id: "EC001",
-    name: "Kamal Perera",
-    email: "kamal@email.com",
-    phone: "+94771234567",
-    source: "customer_registration",
-    customerId: "1",
-    createdAt: "2024-01-01T00:00:00Z",
-    updatedAt: "2024-01-01T00:00:00Z",
-    syncStatus: "pending",
-    isSubscribed: true,
-    tags: ["customer", "business-loan"],
-  },
-  {
-    id: "EC002",
-    name: "Nimal Silva",
-    email: "nimal@email.com",
-    phone: "+94779876543",
-    source: "customer_registration",
-    customerId: "2",
-    createdAt: "2024-01-02T00:00:00Z",
-    updatedAt: "2024-01-02T00:00:00Z",
-    syncStatus: "pending",
-    isSubscribed: true,
-    tags: ["customer", "personal-loan"],
-  },
-];
-
-// Initial email sync configuration
-const initialEmailSyncConfig: EmailSyncConfig = {
-  enabled: true,
-  provider: "internal",
-  syncOnCustomerRegistration: true,
-  syncOnLoanApproval: true,
-  lastSyncAt: "2024-01-02T00:00:00Z",
-};
-
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-  const [loans, setLoans] = useState<Loan[]>(initialLoans);
-  const [repayments, setRepayments] = useState<Repayment[]>(initialRepayments);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [loginLogs, setLoginLogs] = useState<LoginLog[]>(initialLoginLogs);
+  // const [customers, setCustomers] = useState<Customer[]>([]);
+  const [repayments, setRepayments] = useState<Repayment[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
   const [emailContacts, setEmailContacts] =
-    useState<EmailContact[]>(initialEmailContacts);
-  const [emailSyncConfig, setEmailSyncConfig] = useState<EmailSyncConfig>(
-    initialEmailSyncConfig
-  );
+    useState<EmailContact[]>([]);
+  const [emailSyncConfig, setEmailSyncConfig] = useState<EmailSyncConfig>();
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const dispatch = useDispatch();
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -323,24 +73,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         };
         const [customersRes, loansRes, repaymentsRes, usersRes] =
           await Promise.all([
-            fetch("http://localhost:5000/api/v1/customers", { headers }),
-            fetch("http://localhost:5000/api/v1/loans", { headers }),
-            fetch("http://localhost:5000/api/v1/payments", { headers }),
-            fetch("http://localhost:5000/api/v1/users", { headers }),
-            // fetch('http://localhost:5000/api/v1/users'),
+            fetchCustomers(dispatch),
+            fetchLoans(dispatch),
+            fetchPayments(dispatch),
+            fetchUsers(dispatch)
           ]);
 
-        const customers = await customersRes.json();
-        const loans = await loansRes.json();
-        const repayments = await repaymentsRes.json();
-        const users = await usersRes.json();
-        // const loginLogs = await logsRes.json();
-
-        setCustomers(customers.data);
-        setLoans(loans.data);
-        setRepayments(repayments.data);
-        setUsers(users.data);
-        // setLoginLogs(loginLogs);
       } catch (err) {
         console.error("Error loading data from API:", err);
       }
@@ -403,51 +141,47 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         console.error("Error loading email sync config from localStorage:", e);
       }
     }
-  }, []);
+  }, [dispatch]);
 
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem("lms_customers", JSON.stringify(customers));
-  }, [customers]);
+  // useEffect(() => {
+  //   localStorage.setItem("lms_customers", JSON.stringify(customers));
+  // }, [customers]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("lms_loans", JSON.stringify(loans));
+  // }, [loans]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("lms_repayments", JSON.stringify(repayments));
+  // }, [repayments]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("lms_users", JSON.stringify(users));
+  // }, [users]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("lms_login_logs", JSON.stringify(loginLogs));
+  // }, [loginLogs]);
+
+  // useEffect(() => {
+  //   localStorage.setItem("lms_email_contacts", JSON.stringify(emailContacts));
+  // }, [emailContacts]);
+
+  // useEffect(() => {
+  //   localStorage.setItem(
+  //     "lms_email_sync_config",
+  //     JSON.stringify(emailSyncConfig)
+  //   );
+  // }, [emailSyncConfig]);
 
   useEffect(() => {
-    localStorage.setItem("lms_loans", JSON.stringify(loans));
-  }, [loans]);
-
-  useEffect(() => {
-    localStorage.setItem("lms_repayments", JSON.stringify(repayments));
-  }, [repayments]);
-
-  useEffect(() => {
-    localStorage.setItem("lms_users", JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem("lms_login_logs", JSON.stringify(loginLogs));
-  }, [loginLogs]);
-
-  useEffect(() => {
-    localStorage.setItem("lms_email_contacts", JSON.stringify(emailContacts));
-  }, [emailContacts]);
-
-  useEffect(() => {
-    localStorage.setItem(
-      "lms_email_sync_config",
-      JSON.stringify(emailSyncConfig)
-    );
-  }, [emailSyncConfig]);
-
-  // Auto-sync email contacts when a new customer is added or a loan is approved
-  useEffect(() => {
-    if (emailSyncConfig.enabled) {
-      // This would be a more sophisticated sync in a real application
-      // For now, we'll just update the lastSyncAt timestamp
-      setEmailSyncConfig((prev) => ({
+    if (emailSyncConfig?.enabled) {
+      setEmailSyncConfig((prev:any) => ({
         ...prev,
         lastSyncAt: new Date().toISOString(),
       }));
     }
-  }, [emailContacts, emailSyncConfig.enabled]);
+  }, [emailContacts, emailSyncConfig?.enabled]);
 
   const addCustomer = (
     customerData: Omit<Customer, "id" | "createdAt" | "updatedAt">
@@ -458,10 +192,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setCustomers((prev) => [...prev, newCustomer]);
+    setCustomers((prev:any) => [...prev, newCustomer]);
 
     // Auto-add to email contacts if enabled and email exists
-    if (emailSyncConfig.syncOnCustomerRegistration && customerData.email) {
+    if (emailSyncConfig?.syncOnCustomerRegistration && customerData.email) {
       addEmailContact({
         name: customerData.name,
         email: customerData.email,
@@ -476,8 +210,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
-    setCustomers((prev) =>
-      prev.map((customer) =>
+    setCustomers((prev:any) =>
+      prev.map((customer:any) =>
         customer._id === id
           ? { ...customer, ...updates, updatedAt: new Date().toISOString() }
           : customer
@@ -486,9 +220,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     // Update corresponding email contact if email is updated
     if (updates.email || updates.name || updates.phone) {
-      const customer = customers.find((c) => c._id === id);
+      const customer = customers?.find((c) => c._id === id);
       if (customer) {
-        const contact = emailContacts.find((c) => c.customerId === id);
+        const contact = emailContacts?.find((c) => c.customerId === id);
         if (contact) {
           updateEmailContact(contact.id, {
             name: updates.name || customer.name,
@@ -515,34 +249,32 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteCustomer = (id: string) => {
-    setCustomers((prev) => prev.filter((customer) => customer._id !== id));
+    setCustomers((prev:any) => prev.filter((customer:any) => customer._id !== id));
     // Also remove related loans and repayments
-    setLoans((prev) => prev.filter((loan) => loan.customerId._id !== id));
+    setLoans((prev:any) => prev.filter((loan:any) => loan.customerId._id !== id));
     // Remove related email contacts
-    setEmailContacts((prev) =>
-      prev.filter((contact) => contact.customerId !== id)
+    setEmailContacts((prev:any) =>
+      prev.filter((contact:any) => contact.customerId !== id)
     );
   };
 
-  const addLoan = (loanData: Omit<Loan, "id" | "createdAt" | "updatedAt">) => {
-    const newLoan: Loan = {
+  const addLoan = (loanData:any) => {
+    const newLoan = {
       ...loanData,
       _id: "L" + Date.now().toString(),
-      createdAt: loanData.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
-    setLoans((prev) => [...prev, newLoan]);
+    setLoans((prev:any) => [...prev, newLoan]);
   };
 
   const updateLoan = async (id: string, updates: Partial<Loan>) => {
-    setLoans((prev) =>
-      prev.map((loan) =>
+    setLoans((prev:any) =>
+      prev.map((loan:any) =>
         loan._id === id
           ? { ...loan, ...updates, updatedAt: new Date().toISOString() }
           : loan
       )
     );
- let loan = loans.find((l) => l._id === id);
+ let loan = loans?.find((l) => l._id === id);
     try {
       const token = localStorage.getItem("token"); // Adjust key name if different
 
@@ -562,13 +294,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
 
     // If loan is approved and sync on approval is enabled, add customer to email contacts
-    if (updates.status === "approved" && emailSyncConfig.syncOnLoanApproval) {
+    if (updates.status === "approved" && emailSyncConfig?.syncOnLoanApproval) {
      
       if (loan) {
-        const customer = customers.find((c) => c._id === loan.customerId._id);
+        const customer = customers?.find((c) => c._id === loan.customerId._id);
         if (customer && customer.email) {
           // Check if contact already exists
-          const existingContact = emailContacts.find(
+          const existingContact = emailContacts?.find(
             (c) => c.customerId === customer._id
           );
           if (existingContact) {
@@ -603,23 +335,23 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...repaymentData,
       id: "R" + Date.now().toString(),
     };
-    setRepayments((prev) => [...prev, newRepayment]);
+    setRepayments((prev:any) => [...prev, newRepayment]);
   };
 
   const updateRepayment = (id: string, updates: Partial<Repayment>) => {
-    setRepayments((prev) =>
-      prev.map((repayment) =>
+    setRepayments((prev:any) =>
+      prev.map((repayment:any) =>
         repayment.id === id ? { ...repayment, ...updates } : repayment
       )
     );
   };
 
   const generateLoanSchedule = (loanId: string) => {
-    const loan = loans.find((l) => l._id === loanId);
+    const loan = loans?.find((l) => l._id === loanId);
     if (!loan || !loan.approvedAmount || !loan.disbursedDate) return;
 
     // Remove existing repayments for this loan
-    setRepayments((prev) => prev.filter((r) => r.loanId !== loanId));
+    setRepayments((prev:any) => prev.filter((r:any) => r.loanId !== loanId));
 
     const schedule: Omit<Repayment, "id">[] = [];
     const startDate = new Date(loan.disbursedDate);
@@ -651,12 +383,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       failedLoginAttempts: 0,
       isOnline: false,
     };
-    setUsers((prev) => [...prev, newUser]);
+    setUsers((prev:any) => [...prev, newUser]);
   };
 
   const updateUser = (id: string, updates: Partial<User>) => {
-    setUsers((prev) =>
-      prev.map((user) =>
+    setUsers((prev:any) =>
+      prev.map((user:any) =>
         user._id === id
           ? { ...user, ...updates, updatedAt: new Date().toISOString() }
           : user
@@ -665,9 +397,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteUser = (id: string) => {
-    setUsers((prev) => prev.filter((user) => user._id !== id));
+    setUsers((prev:any) => prev.filter((user:any) => user._id !== id));
     // Also remove related login logs
-    setLoginLogs((prev) => prev.filter((log) => log.userId !== id));
+    setLoginLogs((prev:any) => prev.filter((log:any) => log.userId !== id));
   };
 
   const addLoginLog = (logData: Omit<LoginLog, "id">) => {
@@ -675,7 +407,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       ...logData,
       id: "LOG" + Date.now().toString(),
     };
-    setLoginLogs((prev) => [...prev, newLog]);
+    setLoginLogs((prev:any) => [...prev, newLog]);
   };
 
   // Email Contact Management Functions
@@ -683,7 +415,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     contactData: Omit<EmailContact, "id" | "createdAt" | "updatedAt">
   ) => {
     // Check for duplicates
-    const existingContact = emailContacts.find(
+    const existingContact = emailContacts?.find(
       (c) => c.email.toLowerCase() === contactData.email.toLowerCase()
     );
     if (existingContact) {
@@ -701,12 +433,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setEmailContacts((prev) => [...prev, newContact]);
+    setEmailContacts((prev:any) => [...prev, newContact]);
   };
 
   const updateEmailContact = (id: string, updates: Partial<EmailContact>) => {
-    setEmailContacts((prev) =>
-      prev.map((contact) =>
+    setEmailContacts((prev:any) =>
+      prev.map((contact:any) =>
         contact.id === id
           ? { ...contact, ...updates, updatedAt: new Date().toISOString() }
           : contact
@@ -715,11 +447,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteEmailContact = (id: string) => {
-    setEmailContacts((prev) => prev.filter((contact) => contact.id !== id));
+    setEmailContacts((prev:any) => prev.filter((contact:any) => contact.id !== id));
   };
 
   const updateEmailSyncConfig = (config: Partial<EmailSyncConfig>) => {
-    setEmailSyncConfig((prev) => ({
+    setEmailSyncConfig((prev:any) => ({
       ...prev,
       ...config,
     }));
@@ -737,7 +469,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         let success = 0;
         let failed = 0;
 
-        const updatedContacts = emailContacts.map((contact) => {
+        const updatedContacts = emailContacts?.map((contact) => {
           if (contact.syncStatus === "pending") {
             // 90% success rate for demo
             const isSuccess = Math.random() > 0.1;
@@ -757,7 +489,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         });
 
         setEmailContacts(updatedContacts);
-        setEmailSyncConfig((prev) => ({
+        setEmailSyncConfig((prev:any) => ({
           ...prev,
           lastSyncAt: new Date().toISOString(),
         }));
@@ -781,7 +513,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       "Subscribed",
       "Tags",
     ];
-    const csvData = emailContacts.map((contact) => [
+    const csvData = emailContacts?.map((contact) => [
       contact.name,
       contact.email,
       contact.phone,
@@ -794,8 +526,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       (contact.tags || []).join(", "),
     ]);
 
-    const csvContent = [headers, ...csvData]
-      .map((row) => row.map((field) => `"${field}"`).join(","))
+    const csvContent = [headers, ...csvData ?? []]
+      .map((row) => row.map((field:any) => `"${field}"`).join(","))
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });

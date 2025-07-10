@@ -16,7 +16,7 @@ interface LoanFormProps {
 export default function LoanForm({ loan, onCancel }: LoanFormProps) {
   const { customerOptions, loanTypeOptions, periodUnitOptions } = useSelectionOptions();
 
-  const { register, handleSubmit, control, watch } = useForm<LoanFormInputs>({
+  const { register, handleSubmit, control, watch,setValue } = useForm<LoanFormInputs>({
     defaultValues: {
       customerId: typeof loan?.customerId === 'string' ? loan?.customerId : loan?.customerId?._id || '',
       type: loan?.type || 'personal',
@@ -161,23 +161,6 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
     // } catch (error) {
     //   console.error("Error saving loan:", error);
     // }
-  };
-
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const newDocuments = files.map(file => ({
-      id: Date.now().toString() + Math.random().toString(36).slice(2),
-      name: file.name,
-      type: file.type,
-      url: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString()
-    }));
-    setDocuments([...documents, ...newDocuments]);
-  };
-
-  const removeDocument = (id: string) => {
-    setDocuments(documents.filter(doc => doc.id !== id));
   };
 
   const getPeriodLabel = () => {
@@ -572,7 +555,7 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
 
             {/* Documents */}
             <div className="space-y-4">
-              <DocumentUpload />
+             <DocumentUpload control={control} setValue={setValue} />
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="font-medium text-gray-800 mb-2">Required Documents:</h4>

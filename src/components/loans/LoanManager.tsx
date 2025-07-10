@@ -90,6 +90,7 @@ export default function LoanManager() {
       />
     );
   }
+console.log({'currentView':currentView});
 
   return (
     <div className="space-y-6">

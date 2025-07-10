@@ -3,5 +3,6 @@ export const API_ROUTES = {
     PROFILE:'users',
     LOANS:'loans',
     CUSTOMERS:'customers',
-    PAYMENTS:'payments'
+    PAYMENTS:'payments',
+    USERS:'users'
 };
