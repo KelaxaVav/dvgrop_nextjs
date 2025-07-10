@@ -1,7 +1,7 @@
 import { Dispatch } from "redux";
-import { API_ROUTES } from "./api_routes";
-import Http from "./http";
-import { handleApiError } from "./handle_api_error";
+import { API_ROUTES } from "../utils/api_routes";
+import Http from "../utils/http";
+import { handleApiError } from "../utils/handle_api_error";
 import { setLoans } from "../redux/loan_slice";
 import { setCustomers } from "../redux/customer_slice";
 import { setPayments } from "../redux/payment_slice";

@@ -1,7 +1,7 @@
 import { Users,FileText,DollarSign,Calendar,Clock,AlertTriangle} from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { fetchCustomers, fetchLoans, fetchPayments } from '../utils/fetch';
+import { fetchCustomers, fetchLoans, fetchPayments } from '../Service/fetch';
 import { ReduxState } from '../types/redux_state';
 
 export default function Dashboard() {

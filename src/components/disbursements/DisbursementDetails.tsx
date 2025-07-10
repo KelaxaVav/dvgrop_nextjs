@@ -86,7 +86,7 @@ export default function DisbursementDetails({ loan, customer, onClose }: Disburs
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-blue-600 font-medium">Loan ID:</span>
-                <span className="text-blue-900">{loan.id}</span>
+                <span className="text-blue-900">{loan._id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-blue-600 font-medium">Type:</span>

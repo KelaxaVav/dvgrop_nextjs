@@ -12,8 +12,10 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { ReduxState } from "../types/redux_state";
 import { setCustomers } from "../redux/customer_slice";
-import { fetchCustomers, fetchLoans, fetchPayments, fetchUsers } from "../utils/fetch";
 import { setLoans } from "../redux/loan_slice";
+import Http from "../utils/http";
+import { API_ROUTES } from "../utils/api_routes";
+import { fetchCustomers, fetchLoans, fetchPayments, fetchUsers } from "../Service/fetch";
 
 interface DataContextType {
   customers: Customer[];
@@ -248,8 +250,16 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteCustomer = (id: string) => {
-    setCustomers((prev:any) => prev.filter((customer:any) => customer._id !== id));
+  const deleteCustomer = async(id: string) => {
+    // setCustomers((prev:any) => prev.filter((customer:any) => customer._id !== id));
+     try {
+      const response = await Http.delete(`${API_ROUTES.CUSTOMERS}/${id}`);
+      if (response.data.success) {
+        fetchCustomers(dispatch)
+      }
+    } catch (error) {
+      alert("Failed to delete customer.");
+    }
     // Also remove related loans and repayments
     setLoans((prev:any) => prev.filter((loan:any) => loan.customerId._id !== id));
     // Remove related email contacts

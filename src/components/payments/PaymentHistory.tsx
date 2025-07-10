@@ -12,7 +12,7 @@ export default function PaymentHistory({ loanId, onClose }: PaymentHistoryProps)
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   
-  const loan = loans.find(l => l.id === loanId);
+  const loan = loans.find(l => l._id === loanId);
   const customer = customers.find(c => c.id === loan?.customerId);
   const loanRepayments = repayments
     .filter(r => r.loanId === loanId)

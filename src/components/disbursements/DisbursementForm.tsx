@@ -125,7 +125,7 @@ export default function DisbursementForm({ loan, customer, onDisburse, onCancel 
           </div>
           <div>
             <p className="text-sm text-blue-600">Loan Details</p>
-            <p className="font-medium text-blue-900">ID: {loan.id}</p>
+            <p className="font-medium text-blue-900">ID: {loan._id}</p>
             <p className="text-sm text-blue-700">{loan.type} loan • {loan.period} months</p>
           </div>
           <div>

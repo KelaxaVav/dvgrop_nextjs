@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileText, Plus, Search, Filter, Eye, Edit, Check, X } from 'lucide-react';
 import LoanForm from './LoanForm';
-import { fetchCustomers, fetchLoans } from '../../utils/fetch';
+import { fetchCustomers, fetchLoans } from '../../Service/fetch';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 import { ILoan } from '../../types/loan';
