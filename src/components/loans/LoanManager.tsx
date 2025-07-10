@@ -8,7 +8,7 @@ import { ILoan } from '../../types/loan';
 import { subscribeLoading } from '../../utils/loading';
 import PageLoader from '../../custom_component/loading';
 import { capitalizeFirstLetter } from '../../utils/utils';
-import { updateLoanStatus } from '../../services/create';
+import { updateLoanStatus } from './services/loan_utils';
 
 export default function LoanManager() {
   const dispatch = useDispatch();

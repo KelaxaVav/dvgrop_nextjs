@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, DollarSign, Calendar, Building, Banknote, CreditCard, User, FileText, Download, CheckCircle } from 'lucide-react';
 import { Loan, Customer } from '../../types';
 

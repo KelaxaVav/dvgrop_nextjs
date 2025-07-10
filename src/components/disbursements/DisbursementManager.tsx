@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DollarSign, Calendar, CheckCircle, Clock, AlertTriangle, Eye, Download, CreditCard, Banknote, Building } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Loan } from '../../types';
 import DisbursementForm from './DisbursementForm';
 import DisbursementDetails from './DisbursementDetails';
+import { ReduxState } from '../../types/redux_state';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateLoanStatus } from '../loans/services/loan_utils';
 
 export default function DisbursementManager() {
-  const { loans, customers, updateLoan, generateLoanSchedule } = useData();
-  const { user } = useAuth();
+  const { updateLoan, generateLoanSchedule } = useData();
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { user } = useSelector((state: ReduxState) => state.auth);
+  const dispatch = useDispatch()
+
+  // const { user } = useAuth();
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'disburse' | 'details'>('list');
   const [filter, setFilter] = useState<'ready' | 'disbursed' | 'all'>('ready');
@@ -16,17 +24,17 @@ export default function DisbursementManager() {
   // Get loans ready for disbursement (approved but not disbursed)
   const readyForDisbursement = loans.filter(loan => loan.status === 'approved');
   const disbursedLoans = loans.filter(loan => loan.status === 'disbursed' || loan.status === 'active');
-  
-  const filteredLoans = filter === 'ready' ? readyForDisbursement : 
-                      filter === 'disbursed' ? disbursedLoans : 
-                      [...readyForDisbursement, ...disbursedLoans];
+
+  const filteredLoans = filter === 'ready' ? readyForDisbursement :
+    filter === 'disbursed' ? disbursedLoans :
+      [...readyForDisbursement, ...disbursedLoans];
 
   const getDisbursementStats = () => {
     const readyCount = readyForDisbursement.length;
     const readyAmount = readyForDisbursement.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0);
     const disbursedCount = disbursedLoans.length;
     const disbursedAmount = disbursedLoans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0);
-    const todayDisbursed = disbursedLoans.filter(loan => 
+    const todayDisbursed = disbursedLoans.filter(loan =>
       loan.disbursedDate && new Date(loan.disbursedDate).toDateString() === new Date().toDateString()
     ).length;
 
@@ -46,11 +54,11 @@ export default function DisbursementManager() {
       remarks: disbursementData.remarks
     };
 
-    updateLoan(loan.id, updatedLoan);
-    
+    updateLoanStatus(loan?._id, updatedLoan,dispatch);
+
     // Generate repayment schedule
-    generateLoanSchedule(loan.id);
-    
+    // generateLoanSchedule(loan?._id);
+
     setCurrentView('list');
     setSelectedLoan(null);
   };
@@ -87,7 +95,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementForm
         loan={selectedLoan}
-        customer={customers.find(c => c.id === selectedLoan.customerId)}
+        customer={customers.find(c => c._id === selectedLoan.customerId)}
         onDisburse={handleDisburse}
         onCancel={() => {
           setCurrentView('list');
@@ -101,7 +109,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementDetails
         loan={selectedLoan}
-        customer={customers.find(c => c.id === selectedLoan.customerId)}
+        customer={customers.find(c => c._id === selectedLoan.customerId)}
         onClose={() => {
           setCurrentView('list');
           setSelectedLoan(null);
@@ -195,11 +203,10 @@ export default function DisbursementManager() {
               <button
                 key={tab.key}
                 onClick={() => setFilter(tab.key as any)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  filter === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${filter === tab.key
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 {tab.label} ({tab.count})
               </button>
@@ -211,11 +218,11 @@ export default function DisbursementManager() {
         <div className="p-6">
           <div className="space-y-4">
             {filteredLoans.map((loan) => {
-              const customer = customers.find(c => c.id === loan.customerId);
+              const customer = customers.find(c => c.id === loan?.customerId);
               const isReady = loan.status === 'approved';
-              
+
               return (
-                <div key={loan.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                <div key={loan?._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-3">
@@ -230,11 +237,11 @@ export default function DisbursementManager() {
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                         <div>
                           <p className="text-sm text-gray-600">Loan Details</p>
-                          <p className="font-medium">ID: {loan.id}</p>
+                          <p className="font-medium">ID: {loan?._id}</p>
                           <p className="text-sm text-gray-500">{loan.type} loan</p>
                         </div>
                         <div>
@@ -252,7 +259,7 @@ export default function DisbursementManager() {
                             {isReady ? 'Approved Date' : 'Disbursed Date'}
                           </p>
                           <p className="font-medium">
-                            {isReady 
+                            {isReady
                               ? new Date(loan.approvedDate!).toLocaleDateString()
                               : loan.disbursedDate ? new Date(loan.disbursedDate).toLocaleDateString() : 'N/A'
                             }
@@ -323,7 +330,7 @@ export default function DisbursementManager() {
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </button>
-                      
+
                       {isReady && user?.role !== 'clerk' && (
                         <button
                           onClick={() => handleStartDisbursement(loan)}
@@ -354,11 +361,11 @@ export default function DisbursementManager() {
               <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No loans found</h3>
               <p className="text-gray-500">
-                {filter === 'ready' 
-                  ? 'No loans are ready for disbursement' 
+                {filter === 'ready'
+                  ? 'No loans are ready for disbursement'
                   : filter === 'disbursed'
-                  ? 'No loans have been disbursed yet'
-                  : 'No loan disbursement records found'}
+                    ? 'No loans have been disbursed yet'
+                    : 'No loan disbursement records found'}
               </p>
             </div>
           )}

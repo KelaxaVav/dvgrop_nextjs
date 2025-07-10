@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, DollarSign, Calendar, Building, Banknote, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
+import { X, DollarSign, Building, Banknote, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Loan, Customer } from '../../types';
 
 interface DisbursementFormProps {
@@ -125,13 +125,13 @@ export default function DisbursementForm({ loan, customer, onDisburse, onCancel 
           </div>
           <div>
             <p className="text-sm text-blue-600">Loan Details</p>
-            <p className="font-medium text-blue-900">ID: {loan._id}</p>
-            <p className="text-sm text-blue-700">{loan.type} loan • {loan.period} months</p>
+            <p className="font-medium text-blue-900">ID: {loan?._id}</p>
+            <p className="text-sm text-blue-700">{loan?.type} loan • {loan?.period} months</p>
           </div>
           <div>
             <p className="text-sm text-blue-600">Approved Amount</p>
-            <p className="font-medium text-blue-900 text-xl">LKR {(loan.approvedAmount || 0).toLocaleString()}</p>
-            <p className="text-sm text-blue-700">EMI: LKR {loan.emi.toLocaleString()}</p>
+            <p className="font-medium text-blue-900 text-xl">LKR {(loan?.approvedAmount || 0).toLocaleString()}</p>
+            <p className="text-sm text-blue-700">EMI: LKR {loan?.emi.toLocaleString()}</p>
           </div>
         </div>
       </div>
