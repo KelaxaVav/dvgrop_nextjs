@@ -9,10 +9,9 @@ interface CustomerFormProps {
   // onSave: (customer: Omit<Customer, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
   isEditMode: boolean;
-  setIsEditMode: Function;
 
 }
-export default function CustomerForm({customer,onCancel,isEditMode,setIsEditMode
+export default function CustomerForm({customer,onCancel,isEditMode
 }: CustomerFormProps) {
   type MaritalStatus = "single" | "married";
   const [formData, setFormData] = useState({
@@ -41,7 +40,7 @@ export default function CustomerForm({customer,onCancel,isEditMode,setIsEditMode
     try {
 
       const typeId = customer?._id;
-      customerOnSubmitData(data, typeId ?? "", isEditMode,setIsEditMode, onCancel, dispatch)
+      customerOnSubmitData(data, typeId ?? "", isEditMode, onCancel, dispatch)
     } catch (error) {
       console.error("Error saving customer:", error);
     }

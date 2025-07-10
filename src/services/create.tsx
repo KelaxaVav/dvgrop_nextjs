@@ -1,4 +1,3 @@
-import { UseFormReset } from "react-hook-form";
 import { Dispatch } from "redux";
 import Http from "../utils/http";
 import { showDeleteSuccess, showToastError, showToastSuccess, showToastSuccess1 } from "../custom_component/toast";
@@ -12,7 +11,6 @@ export const submitData = async (
     typeId: string,
     fetchData: Function,
     onCancel: Function,
-    setIsEditMode: Function,
     text: string,
     route: string,
     dispatch: Dispatch,
@@ -33,7 +31,6 @@ export const submitData = async (
           
             await fetchData(dispatch);
             showToastSuccess(text, isEditMode);
-            setIsEditMode(false);
             onCancel()
         } else {
             const errorMessage = response?.data?.meta?.message || 'Something went wrong!';
