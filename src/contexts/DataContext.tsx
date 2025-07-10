@@ -22,7 +22,7 @@ interface DataContextType {
   users: User[];
   loginLogs: LoginLog[];
   emailContacts: EmailContact[];
-  emailSyncConfig: EmailSyncConfig;
+  emailSyncConfig: EmailSyncConfig | undefined;
   addCustomer: (
     customer: Omit<Customer, "id" | "createdAt" | "updatedAt">
   ) => void;
@@ -62,86 +62,86 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
 
   // Load data from localStorage on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("token"); // Adjust key name if different
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const token = localStorage.getItem("token"); // Adjust key name if different
 
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        };
-        const [customersRes, loansRes, repaymentsRes, usersRes] =
-          await Promise.all([
-            fetchCustomers(dispatch),
-            fetchLoans(dispatch),
-            fetchPayments(dispatch),
-            fetchUsers(dispatch)
-          ]);
+  //       const headers = {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       };
+  //       const [customersRes, loansRes, repaymentsRes, usersRes] =
+  //         await Promise.all([
+  //           fetchCustomers(dispatch),
+  //           fetchLoans(dispatch),
+  //           fetchPayments(dispatch),
+  //           fetchUsers(dispatch)
+  //         ]);
 
-      } catch (err) {
-        console.error("Error loading data from API:", err);
-      }
-    };
-    fetchData();
-    // const savedCustomers = localStorage.getItem('lms_customers');
-    // const savedLoans = localStorage.getItem('lms_loans');
-    // const savedRepayments = localStorage.getItem('lms_repayments');
-    // const savedUsers = localStorage.getItem('lms_users');
-    const savedLoginLogs = localStorage.getItem("lms_login_logs");
-    const savedEmailContacts = localStorage.getItem("lms_email_contacts");
-    const savedEmailSyncConfig = localStorage.getItem("lms_email_sync_config");
+  //     } catch (err) {
+  //       console.error("Error loading data from API:", err);
+  //     }
+  //   };
+  //   fetchData();
+  //   // const savedCustomers = localStorage.getItem('lms_customers');
+  //   // const savedLoans = localStorage.getItem('lms_loans');
+  //   // const savedRepayments = localStorage.getItem('lms_repayments');
+  //   // const savedUsers = localStorage.getItem('lms_users');
+  //   const savedLoginLogs = localStorage.getItem("lms_login_logs");
+  //   const savedEmailContacts = localStorage.getItem("lms_email_contacts");
+  //   const savedEmailSyncConfig = localStorage.getItem("lms_email_sync_config");
 
-    // if (savedCustomers) {
-    //   try {
-    //     setCustomers(JSON.parse(savedCustomers));
-    //   } catch (e) {
-    //     console.error('Error loading customers from localStorage:', e);
-    //   }
-    // }
-    // if (savedLoans) {
-    //   try {
-    //     setLoans(JSON.parse(savedLoans));
-    //   } catch (e) {
-    //     console.error('Error loading loans from localStorage:', e);
-    //   }
-    // }
-    // if (savedRepayments) {
-    //   try {
-    //     setRepayments(JSON.parse(savedRepayments));
-    //   } catch (e) {
-    //     console.error('Error loading repayments from localStorage:', e);
-    //   }
-    // }
-    // if (savedUsers) {
-    //   try {
-    //     setUsers(JSON.parse(savedUsers));
-    //   } catch (e) {
-    //     console.error('Error loading users from localStorage:', e);
-    //   }
-    // }
-    if (savedLoginLogs) {
-      try {
-        setLoginLogs(JSON.parse(savedLoginLogs));
-      } catch (e) {
-        console.error("Error loading login logs from localStorage:", e);
-      }
-    }
-    if (savedEmailContacts) {
-      try {
-        setEmailContacts(JSON.parse(savedEmailContacts));
-      } catch (e) {
-        console.error("Error loading email contacts from localStorage:", e);
-      }
-    }
-    if (savedEmailSyncConfig) {
-      try {
-        setEmailSyncConfig(JSON.parse(savedEmailSyncConfig));
-      } catch (e) {
-        console.error("Error loading email sync config from localStorage:", e);
-      }
-    }
-  }, [dispatch]);
+  //   // if (savedCustomers) {
+  //   //   try {
+  //   //     setCustomers(JSON.parse(savedCustomers));
+  //   //   } catch (e) {
+  //   //     console.error('Error loading customers from localStorage:', e);
+  //   //   }
+  //   // }
+  //   // if (savedLoans) {
+  //   //   try {
+  //   //     setLoans(JSON.parse(savedLoans));
+  //   //   } catch (e) {
+  //   //     console.error('Error loading loans from localStorage:', e);
+  //   //   }
+  //   // }
+  //   // if (savedRepayments) {
+  //   //   try {
+  //   //     setRepayments(JSON.parse(savedRepayments));
+  //   //   } catch (e) {
+  //   //     console.error('Error loading repayments from localStorage:', e);
+  //   //   }
+  //   // }
+  //   // if (savedUsers) {
+  //   //   try {
+  //   //     setUsers(JSON.parse(savedUsers));
+  //   //   } catch (e) {
+  //   //     console.error('Error loading users from localStorage:', e);
+  //   //   }
+  //   // }
+  //   if (savedLoginLogs) {
+  //     try {
+  //       setLoginLogs(JSON.parse(savedLoginLogs));
+  //     } catch (e) {
+  //       console.error("Error loading login logs from localStorage:", e);
+  //     }
+  //   }
+  //   if (savedEmailContacts) {
+  //     try {
+  //       setEmailContacts(JSON.parse(savedEmailContacts));
+  //     } catch (e) {
+  //       console.error("Error loading email contacts from localStorage:", e);
+  //     }
+  //   }
+  //   if (savedEmailSyncConfig) {
+  //     try {
+  //       setEmailSyncConfig(JSON.parse(savedEmailSyncConfig));
+  //     } catch (e) {
+  //       console.error("Error loading email sync config from localStorage:", e);
+  //     }
+  //   }
+  // }, [dispatch]);
 
   // useEffect(() => {
   //   localStorage.setItem("lms_customers", JSON.stringify(customers));

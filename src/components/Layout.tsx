@@ -19,7 +19,7 @@ import {
 import { ReduxState } from '../types/redux_state';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout as logoutAction } from '../redux/auth_slice';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,13 +44,13 @@ const menuItems = [
 ];
 
 export default function Layout({ children, currentPage }: LayoutProps) {
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const user = useSelector((state: ReduxState) => state.auth.user);
-   const toggleSidebar = () => {
-        setSidebarOpen(prev => !prev);
-    };
-  console.log({'user':user});
-  
+  const toggleSidebar = () => {
+    setSidebarOpen(prev => !prev);
+  };
+  console.log({ 'user': user });
+
   const canAccess = (menuId: string) => {
     if (user?.role === 'admin') return true;
     if (user?.role === 'officer' && ['dashboard', 'customers', 'loans', 'approvals', 'disbursements', 'repayments', 'payments', 'daily-payments', 'notifications', 'contacts', 'reports', 'settings'].includes(menuId)) return true;
@@ -61,15 +61,18 @@ export default function Layout({ children, currentPage }: LayoutProps) {
   const filteredMenuItems = menuItems.filter(item => canAccess(item.id));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     dispatch(logoutAction());
     navigate('/login');
   };
-  console.log({'filteredMenuItems':filteredMenuItems});
-  
+  console.log({ 'currentPage': currentPage });
+  const location = useLocation();
+
+  const currentPath = location.pathname === '/' ? 'dashboard' : location.pathname.slice(1);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {sidebarOpen && (
@@ -95,12 +98,12 @@ export default function Layout({ children, currentPage }: LayoutProps) {
               <button
                 key={item.id}
                 onClick={() => {
-                    navigate(item.id === 'dashboard' ? '/' : `/${item.id}`);
+                  navigate(item.id === 'dashboard' ? '/' : `/${item.id}`);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center px-6 py-3 text-left transition-colors ${currentPage === item.id
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                className={`w-full flex items-center px-6 py-3 text-left transition-colors ${currentPath === item.id
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                  : 'text-gray-700 hover:bg-gray-50'
                   }`}
               >
                 <Icon className="w-5 h-5 mr-3" />
@@ -132,9 +135,7 @@ export default function Layout({ children, currentPage }: LayoutProps) {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="lg:ml-64">
-        {/* Top bar */}
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <button
@@ -145,7 +146,7 @@ export default function Layout({ children, currentPage }: LayoutProps) {
             </button>
 
             <h2 className="text-lg font-semibold text-gray-800 capitalize">
-              {currentPage.replace('-', ' ')}
+              {currentPath.replace('-', ' ')}
             </h2>
 
             <div className="flex items-center space-x-4">

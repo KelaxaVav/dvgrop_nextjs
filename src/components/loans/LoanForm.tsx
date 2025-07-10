@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Calculator } from 'lucide-react';
 import { ILoan } from '../../types/loan';
 import { Controller, useForm } from 'react-hook-form';
@@ -6,45 +6,64 @@ import { LoanFormInputs } from '../../form_values/loan_form_input';
 import Select from "react-select";
 import { useSelectionOptions } from '../../custom_component/selection_options';
 import DocumentUpload from './document';
+import { ExampleCalculationResult, getEMIFrequency, getExampleCalculation, getInterestRateDisplay, getPeriodLabel } from './services/loan_utils';
+import { useDispatch, useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
+import Http from '../../utils/http';
+import { fetchLoans } from '../../utils/fetch';
+import { showToastError, showToastSuccess } from '../../custom_component/toast';
+import { API_ROUTES } from '../../utils/api_routes';
+import { subscribeLoading } from '../../utils/loading';
+import PageLoader from '../../custom_component/loading';
+import { Atom, Commet } from 'react-loading-indicators';
 
 interface LoanFormProps {
-  loan?: ILoan;
-  onSave: (loan: Omit<ILoan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate?: string }) => void;
+  // loan?: ILoan;
   onCancel: () => void;
+  isEditMode: boolean;
+  loanId?: string;
 }
 
-export default function LoanForm({ loan, onCancel }: LoanFormProps) {
+export default function LoanForm({ onCancel, isEditMode, loanId }: LoanFormProps) {
   const { customerOptions, loanTypeOptions, periodUnitOptions } = useSelectionOptions();
 
-  const { register, handleSubmit, control, watch,setValue } = useForm<LoanFormInputs>({
-    defaultValues: {
-      customerId: typeof loan?.customerId === 'string' ? loan?.customerId : loan?.customerId?._id || '',
-      type: loan?.type || 'personal',
-      requestedAmount: loan?.requestedAmount || 0,
-      interestRate: loan?.interestRate || 10,
-      period: loan?.period || 12,
-      periodUnit: 'months',
-      purpose: loan?.purpose || '',
-      status: loan?.status || 'pending',
-      createdDate: loan?.createdAt ? loan.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
-      guarantorName: loan?.guarantor?.name || '',
-      guarantorNic: loan?.guarantor?.nic || '',
-      guarantorPhone: loan?.guarantor?.phone || '',
-      guarantorAddress: loan?.guarantor?.address || '',
-      guarantorOccupation: loan?.guarantor?.occupation || '',
-      guarantorIncome: loan?.guarantor?.income || 0,
-      collateralType: loan?.collateral?.type || '',
-      collateralDescription: loan?.collateral?.description || '',
-      collateralValue: loan?.collateral?.value || 0,
-      sendSMS: true
-    }
+  const { register, handleSubmit, control, watch, setValue } = useForm<LoanFormInputs>({
+    // defaultValues: {
+    //   customerId: typeof loan?.customerId === 'string' ? loan?.customerId : loan?.customerId?._id || '',
+    //   type: loan?.type || 'personal',
+    //   requestedAmount: loan?.requestedAmount || 0,
+    //   interestRate: loan?.interestRate || 10,
+    //   period: loan?.period || 12,
+    //   periodUnit: 'months',
+    //   purpose: loan?.purpose || '',
+    //   status: loan?.status || 'pending',
+    //   createdDate: loan?.createdAt ? loan.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+    //   guarantorName: loan?.guarantor?.name || '',
+    //   guarantorNic: loan?.guarantor?.nic || '',
+    //   guarantorPhone: loan?.guarantor?.phone || '',
+    //   guarantorAddress: loan?.guarantor?.address || '',
+    //   guarantorOccupation: loan?.guarantor?.occupation || '',
+    //   guarantorIncome: loan?.guarantor?.income || 0,
+    //   collateralType: loan?.collateral?.type || '',
+    //   collateralDescription: loan?.collateral?.description || '',
+    //   collateralValue: loan?.collateral?.value || 0,
+    //   sendSMS: true
+    // }
   });
+  const dispatch = useDispatch();
   const formData = watch();
-  const [documents, setDocuments] = useState(loan?.documents || []);
-  const [emi, setEmi] = useState(loan?.emi || 0);
+  const [emi, setEmi] = useState(0);
   const [totalInstallments, setTotalInstallments] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   const [totalInterest, setTotalInterest] = useState(0);
+  const [exampleCalc, setExampleCalc] = useState<ExampleCalculationResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeLoading(setLoading);
+    return () => unsubscribe();
+  }, []);
 
   const calculateSimpleInterestEMI = () => {
     const { requestedAmount, interestRate, period, periodUnit } = formData;
@@ -82,160 +101,113 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
   }, [formData.requestedAmount, formData.interestRate, formData.period, formData.periodUnit]);
 
   const onSubmit = async (data: any) => {
-    console.log({'daaa':data});
-    
-    // let periodInMonths = data.period;
-    // if (data.periodUnit === 'days') {
-    //   periodInMonths = Math.ceil(data.period / 30);
-    // } else if (data.periodUnit === 'weeks') {
-    //   periodInMonths = Math.ceil(data.period / 4.33);
-    // }
+    let periodInMonths = data.period;
+    if (data.periodUnit === 'days') {
+      periodInMonths = Math.ceil(data.period / 30);
+    } else if (data.periodUnit === 'weeks') {
+      periodInMonths = Math.ceil(data.period / 4.33);
+    }
 
-    // const selectedCustomer = customers.find(c => c._id === data.customerId);
+    const selectedCustomer = customers.find(c => c._id === data.customerId);
 
-    // if (!selectedCustomer) {
-    //   alert('Customer not found');
-    //   return;
-    // }
+    if (!selectedCustomer) {
+      alert('Customer not found');
+      return;
+    }
 
-    // const loanData: Omit<ILoan, 'id' | 'createdAt' | 'updatedAt'> & { createdDate: string } = {
-    //   customerId: selectedCustomer,
-    //   type: data.type,
-    //   requestedAmount: data.requestedAmount,
-    //   interestRate: data.interestRate,
-    //   period: periodInMonths,
-    //   emi: emi,
-    //   startDate: new Date().toISOString().split('T')[0],
-    //   purpose: data.purpose,
-    //   status: data.status,
-    //   documents: documents,
-    //   createdDate: data.createdDate,
-    //   guarantor: data.guarantorName ? {
-    //     name: data.guarantorName,
-    //     nic: data.guarantorNic,
-    //     phone: data.guarantorPhone,
-    //     address: data.guarantorAddress,
-    //     occupation: data.guarantorOccupation,
-    //     income: data.guarantorIncome,
-    //     _id: ''
-    //   } : {
-    //     name: '',
-    //     nic: '',
-    //     phone: '',
-    //     address: '',
-    //     occupation: '',
-    //     income: 0,
-    //     _id: ''
-    //   },
-    //   collateral: data.collateralType ? {
-    //     type: data.collateralType,
-    //     description: data.collateralDescription,
-    //     value: data.collateralValue,
-    //     _id: ''
-    //   } : {
-    //     type: '',
-    //     description: '',
-    //     value: 0,
-    //     _id: ''
-    //   },
-    //   _id: '',
-    //   createdBy: {
-    //     _id: '',
-    //     name: ''
-    //   },
-    //   loan_id: '',
-    //   approvedAmount: 0,
-    //   updated_at: '',
-    //   deleted_at: null
-    // };
+    const loanData = {
+      customerId: selectedCustomer,
+      type: data.type,
+      requestedAmount: data.requestedAmount,
+      interestRate: data.interestRate,
+      period: periodInMonths,
+      emi: emi,
+      startDate: new Date().toISOString().split('T')[0],
+      purpose: data.purpose,
+      status: data.status,
+      documents: Array.isArray(data.documents) ? data.documents : [],
+      createdDate: data.createdDate,
+      guarantor: data.guarantorName ? {
+        name: data.guarantorName,
+        nic: data.guarantorNic,
+        phone: data.guarantorPhone,
+        address: data.guarantorAddress,
+        occupation: data.guarantorOccupation,
+        income: data.guarantorIncome,
+      } : undefined,
+      collateral: data.collateralType ? {
+        type: data.collateralType,
+        description: data.collateralDescription,
+        value: data.collateralValue,
+      } : undefined,
+    };
 
-    // try {
-    //   const token = localStorage.getItem("token");
-    //   const headers = {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${token}`,
-    //   };
-    //   const response = await axios.post("http://localhost:5000/api/v1/loans", loanData, { headers });
-    //   console.log("Loan saved:", response.data.data);
-    //   onSave(loanData);
-    // } catch (error) {
-    //   console.error("Error saving loan:", error);
-    // }
-  };
-
-  const getPeriodLabel = () => {
-    switch (formData.periodUnit) {
-      case 'days': return 'Days';
-      case 'weeks': return 'Weeks';
-      case 'months': return 'Months';
-      default: return 'Months';
+    try {
+      if (isEditMode) {
+        await Http.put(`${API_ROUTES.LOANS}/${loanId}`, loanData);
+      }
+      else {
+        await Http.post(`${API_ROUTES.LOANS}`, loanData);
+      }
+      fetchLoans(dispatch);
+      onCancel();
+      showToastSuccess('Loan', isEditMode);
+    } catch (error) {
+      showToastError('Error saving loan')
     }
   };
 
-  const getEMIFrequency = () => {
-    switch (formData.periodUnit) {
-      case 'days': return 'Daily installment';
-      case 'weeks': return 'Weekly installment';
-      case 'months': return 'Monthly installment';
-      default: return 'Monthly installment';
-    }
-  };
-
-  const getInterestRateDisplay = () => {
-    const monthlyRate = formData.interestRate;
-    switch (formData.periodUnit) {
-      case 'days':
-        return `${monthlyRate}% per month (Simple Interest)`;
-      case 'weeks':
-        return `${monthlyRate}% per month (Simple Interest)`;
-      case 'months':
-        return `${monthlyRate}% per month (Simple Interest)`;
-      default:
-        return `${monthlyRate}% per month (Simple Interest)`;
-    }
-  };
-
-  // Example calculation for verification
-  const getExampleCalculation = () => {
+  useEffect(() => {
     const { requestedAmount, interestRate, period, periodUnit } = formData;
+    const calc = getExampleCalculation(requestedAmount, interestRate, period, periodUnit);
+    setExampleCalc(calc);
+  }, [formData.requestedAmount, formData.interestRate, formData.period, formData.periodUnit]);
 
-    if (requestedAmount === 50000 && interestRate === 10 && period === 1 && periodUnit === 'months') {
-      return {
-        principal: 50000,
-        interest: 5000, // 50000 × 10% × 1 month
-        total: 55000,
-        emi: 55000, // For 1 month
-        isExample: true
-      };
+  useEffect(() => {
+    if (loanId && isEditMode) {
+      const fetchLoanById = async () => {
+        const response = await Http.get(`${API_ROUTES.LOANS}/${loanId}`);
+        const data = response?.data?.data;
+        if (data) {
+          setValue('customerId', data?.customerId?._id);
+          setValue('createdDate', data?.createdAt ? data.createdAt.split('T')[0] : new Date().toISOString().split('T')[0]);
+          setValue('type', data?.type);
+          setValue('requestedAmount', data?.requestedAmount);
+          setValue('interestRate', data?.interestRate);
+          setValue('period', data?.period);
+          setValue('periodUnit', 'months');
+          setValue('purpose', data?.purpose);
+          setValue('sendSMS', data?.sendSMS ?? true);
+          setValue('guarantorName', data?.guarantor?.name);
+          setValue('guarantorNic', data?.guarantor?.nic);
+          setValue('guarantorPhone', data?.guarantor?.phone);
+          setValue('guarantorAddress', data?.guarantor?.address);
+          setValue('guarantorOccupation', data?.guarantor?.occupation);
+          setValue('guarantorIncome', data?.guarantor?.income);
+          setValue('collateralType', data?.collateral?.type);
+          setValue('collateralDescription', data?.collateral?.description);
+          setValue('collateralValue', data?.collateral?.value);
+          const documentItems: DocumentItem[] = data?.documents?.map((doc: any) => ({
+            _id: doc._id,
+            name: doc.name,
+            url: doc.url || doc.path || '',
+            type: doc.type || ''
+          })) ?? [];
+
+          setValue('documents', documentItems);
+          // setValue('documents', data?.documents ?? []);
+        }
+      }
+      fetchLoanById();
     }
-
-    if (requestedAmount === 50000 && interestRate === 10 && period === 60 && periodUnit === 'days') {
-      const periodInMonths = 60 / 30; // 2 months
-      const interest = 50000 * 0.10 * periodInMonths; // 50000 × 10% × 2 months = 10000
-      const total = 50000 + interest; // 60000
-      const dailyEmi = total / 60; // 1000 per day
-
-      return {
-        principal: 50000,
-        interest: interest,
-        total: total,
-        emi: dailyEmi,
-        periodInMonths: periodInMonths,
-        isExample: true
-      };
-    }
-
-    return null;
-  };
-
-  const exampleCalc = getExampleCalculation();
+  }, [isEditMode, loanId]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-800">
-            {loan ? 'Edit Loan Application' : 'New Loan Application'}
+            {isEditMode ? 'Edit Loan Application' : 'New Loan Application'}
           </h2>
           <button
             onClick={onCancel}
@@ -247,7 +219,6 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Basic Loan Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-800 border-b pb-2">Loan Details</h3>
 
@@ -264,10 +235,10 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                       {...field}
                       options={customerOptions}
                       onChange={(selectedOption) => {
-                        field.onChange(selectedOption ? selectedOption.value : '');
+                        field.onChange(selectedOption ? selectedOption?.value : '');
                       }}
                       value={
-                        customerOptions.find(option => option.value === field.value) || null
+                        customerOptions.find(option => option?.value === field?.value) || null
                       }
                       isClearable
                       placeholder="Select Customer"
@@ -300,9 +271,9 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                   {...register("type", { required: true })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {loanTypeOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  {loanTypeOptions?.map(option => (
+                    <option key={option?.value} value={option?.value}>
+                      {option?.label}
                     </option>
                   ))}
                 </select>
@@ -330,7 +301,7 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  {getInterestRateDisplay()}
+                  {getInterestRateDisplay(formData?.interestRate, formData?.periodUnit)}
                 </p>
               </div>
 
@@ -355,16 +326,16 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 
                   >
-                    {periodUnitOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    {periodUnitOptions?.map(option => (
+                      <option key={option?.value} value={option?.value}>
+                        {option?.label}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
               <p className="text-xs text-gray-500">
-                Loan period: {formData.period} {getPeriodLabel().toLowerCase()} ({totalInstallments} installments)
+                Loan period: {formData?.period} {getPeriodLabel(formData?.periodUnit).toLowerCase()} ({totalInstallments} installments)
               </p>
 
               <div>
@@ -395,12 +366,12 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                   <Calculator className="w-5 h-5 text-blue-600 mr-2" />
                   <h4 className="font-medium text-blue-800">Simple Interest EMI</h4>
                 </div>
-                <p className="text-2xl font-bold text-blue-900">LKR {emi.toLocaleString()}</p>
-                <p className="text-sm text-blue-700">{getEMIFrequency()}</p>
+                <p className="text-2xl font-bold text-blue-900">LKR {emi?.toLocaleString()}</p>
+                <p className="text-sm text-blue-700">{getEMIFrequency(formData?.periodUnit)}</p>
                 <div className="mt-2 text-xs text-blue-600 space-y-1">
-                  <p><strong>Principal:</strong> LKR {formData.requestedAmount.toLocaleString()}</p>
-                  <p><strong>Total Amount:</strong> LKR {totalAmount.toLocaleString()}</p>
-                  <p><strong>Total Interest:</strong> LKR {totalInterest.toLocaleString()}</p>
+                  <p><strong>Principal:</strong> LKR {formData?.requestedAmount?.toLocaleString()}</p>
+                  <p><strong>Total Amount:</strong> LKR {totalAmount?.toLocaleString()}</p>
+                  <p><strong>Total Interest:</strong> LKR {totalInterest?.toLocaleString()}</p>
                   <p><strong>Number of Installments:</strong> {totalInstallments}</p>
                 </div>
               </div>
@@ -412,25 +383,24 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                   <p><strong>Total = Principal + Interest</strong></p>
                   <p><strong>EMI = Total ÷ Installments</strong></p>
                   <hr className="my-2 border-green-300" />
-                  <p>Interest = {formData.requestedAmount.toLocaleString()} × {formData.interestRate}% × {formData.periodUnit === 'days' ? (formData.period / 30).toFixed(2) : formData.periodUnit === 'weeks' ? (formData.period / 4.33).toFixed(2) : formData.period} months</p>
-                  <p>Interest = LKR {totalInterest.toLocaleString()}</p>
-                  <p>Total = LKR {totalAmount.toLocaleString()}</p>
-                  <p>EMI = LKR {emi.toLocaleString()} per {formData.periodUnit.slice(0, -1)}</p>
+                  <p>Interest = {formData?.requestedAmount?.toLocaleString()} × {formData?.interestRate}% × {formData?.periodUnit === 'days' ? (formData?.period / 30).toFixed(2) : formData?.periodUnit === 'weeks' ? (formData?.period / 4.33).toFixed(2) : formData?.period} months</p>
+                  <p>Interest = LKR {totalInterest?.toLocaleString()}</p>
+                  <p>Total = LKR {totalAmount?.toLocaleString()}</p>
+                  <p>EMI = LKR {emi?.toLocaleString()} per {formData?.periodUnit?.slice(0, -1)}</p>
                 </div>
               </div>
 
-              {/* Example Verification */}
               {exampleCalc && (
                 <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                   <h5 className="font-medium text-yellow-800 mb-2">📝 Example Verification:</h5>
                   <div className="text-sm text-yellow-700 space-y-1">
                     <p><strong>Your Example: 50,000 + 10% = 55,000 (1 month)</strong></p>
-                    <p>✅ Principal: LKR {exampleCalc.principal.toLocaleString()}</p>
-                    <p>✅ Interest: LKR {exampleCalc.interest.toLocaleString()}</p>
-                    <p>✅ Total: LKR {exampleCalc.total.toLocaleString()}</p>
-                    <p>✅ EMI: LKR {Math.round(exampleCalc.emi).toLocaleString()}</p>
-                    {exampleCalc.periodInMonths && (
-                      <p>Period: {exampleCalc.periodInMonths} months</p>
+                    <p>✅ Principal: LKR {exampleCalc?.principal.toLocaleString()}</p>
+                    <p>✅ Interest: LKR {exampleCalc?.interest.toLocaleString()}</p>
+                    <p>✅ Total: LKR {exampleCalc?.total.toLocaleString()}</p>
+                    <p>✅ EMI: LKR {Math.round(exampleCalc?.emi ?? 0).toLocaleString()}</p>
+                    {exampleCalc?.periodInMonths && (
+                      <p>Period: {exampleCalc?.periodInMonths} months</p>
                     )}
                   </div>
                 </div>
@@ -512,7 +482,6 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
 
               </div>
 
-              {/* Collateral Information */}
               <h4 className="text-md font-medium text-gray-800 border-b pb-2 mt-6">Collateral (Optional)</h4>
 
               <div>
@@ -553,9 +522,8 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
               </div>
             </div>
 
-            {/* Documents */}
             <div className="space-y-4">
-             <DocumentUpload control={control} setValue={setValue} />
+              <DocumentUpload control={control} setValue={setValue} />
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="font-medium text-gray-800 mb-2">Required Documents:</h4>
@@ -568,7 +536,6 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
                 </ul>
               </div>
 
-              {/* Simple Interest Examples */}
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h4 className="font-medium text-blue-800 mb-2">📚 Simple Interest Examples:</h4>
                 <div className="text-sm text-blue-700 space-y-2">
@@ -599,7 +566,15 @@ export default function LoanForm({ loan, onCancel }: LoanFormProps) {
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {loan ? 'Update Application' : 'Submit Application'}
+              {/* {loading ? (
+                <Atom color='#1E3A8A' />
+
+              ) :
+                (isEditMode ? 'Update Application' : 'Submit Application')
+              } */}
+              {
+                isEditMode ? 'Update Application' : 'Submit Application'
+              }
             </button>
           </div>
         </form>

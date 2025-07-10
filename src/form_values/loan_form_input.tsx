@@ -18,4 +18,5 @@ export interface LoanFormInputs {
   collateralDescription: string;
   collateralValue: number;
   sendSMS: boolean;
+  documents: Document[];
 }

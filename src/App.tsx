@@ -16,6 +16,7 @@ import UserManager from './components/users/UserManager';
 import SMSManager from './components/notifications/SMSManager';
 import ContactManager from './components/contacts/ContactManager';
 import SettingsManager from './components/settings/SettingsManager';
+import { Bounce, ToastContainer } from 'react-toastify';
 
 // function AppContent() {
 //   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -94,6 +95,14 @@ export default function App() {
 
 
   return (
+    <>
     <RouterProvider router={router} />
+    <ToastContainer
+        position="top-right"
+        draggable
+        theme='colored'
+        transition={Bounce}
+      />
+    </>
   );
 }

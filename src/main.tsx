@@ -9,9 +9,9 @@ import { DataProvider } from './contexts/DataContext.tsx';
 createRoot(document.getElementById('root')!).render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <DataProvider>
+      {/* <DataProvider> */}
         <App />
-      </DataProvider>
+      {/* </DataProvider> */}
     </PersistGate>
 
   </Provider>
