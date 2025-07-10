@@ -13,13 +13,13 @@ import { API_ROUTES } from "../../../utils/api_routes";
 
 export const customerOnSubmitData = async (
     data: any, typeId: string, isEditMode: boolean,
-    setIsEditMode: Function,oncancel:Function, dispatch: Dispatch,
+    oncancel:Function, dispatch: Dispatch,
 ) => {
    
     submitData(
         data, isEditMode, typeId || '',
         fetchCustomers,oncancel,
-        setIsEditMode, data.name, `${API_ROUTES.CUSTOMERS}`, dispatch
+        data.name, `${API_ROUTES.CUSTOMERS}`, dispatch
     )
 }
 export const customerDelete = async (id: string, dispatch: Dispatch) => {

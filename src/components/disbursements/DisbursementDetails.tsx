@@ -1,9 +1,9 @@
-import React from 'react';
 import { X, DollarSign, Calendar, Building, Banknote, CreditCard, User, FileText, Download, CheckCircle } from 'lucide-react';
-import { Loan, Customer } from '../../types';
+import { Customer } from '../../types';
+import { ILoan } from '../../types/loan';
 
 interface DisbursementDetailsProps {
-  loan: Loan;
+  loan: ILoan;
   customer?: Customer;
   onClose: () => void;
 }
@@ -171,7 +171,7 @@ export default function DisbursementDetails({ loan, customer, onClose }: Disburs
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-yellow-600 font-medium">Approved By:</span>
-                <span className="text-yellow-900">{loan.approvedBy || 'N/A'}</span>
+                <span className="text-yellow-900">{loan?.approvedBy?.name || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-yellow-600 font-medium">Approval Date:</span>
@@ -288,7 +288,7 @@ export default function DisbursementDetails({ loan, customer, onClose }: Disburs
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Documents</h3>
             <div className="space-y-2">
               {loan.documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div key={doc._id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
                   <div className="flex items-center">
                     <FileText className="w-4 h-4 text-gray-500 mr-3" />
                     <div>

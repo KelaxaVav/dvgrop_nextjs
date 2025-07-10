@@ -1,10 +1,7 @@
-import { UseFormReset } from "react-hook-form";
 import { Dispatch } from "redux";
 import Http from "../utils/http";
-import { showDeleteSuccess, showToastError, showToastSuccess, showToastSuccess1 } from "../custom_component/toast";
+import { showDeleteSuccess, showToastError, showToastSuccess, } from "../custom_component/toast";
 import { handleApiError } from "../utils/handle_api_error";
-import { API_ROUTES } from "../utils/api_routes";
-import { fetchLoans } from "./fetch";
 
 export const submitData = async (
     requestData: any,
@@ -12,7 +9,6 @@ export const submitData = async (
     typeId: string,
     fetchData: Function,
     onCancel: Function,
-    setIsEditMode: Function,
     text: string,
     route: string,
     dispatch: Dispatch,
@@ -33,7 +29,6 @@ export const submitData = async (
           
             await fetchData(dispatch);
             showToastSuccess(text, isEditMode);
-            setIsEditMode(false);
             onCancel()
         } else {
             const errorMessage = response?.data?.meta?.message || 'Something went wrong!';
@@ -73,33 +68,5 @@ export const handleClose = async (setShowModal: Function) => {
 export const deleteClick = async (row: any, setShowModal: Function, setSelectedRow: Function,) => {
     setShowModal(true);
     setSelectedRow(row);
-}
-
-interface UpdateLoanStatusPayload {
-  status: string;
-  remarks?: string;
-  approvedDate?: string;
-  approvedAmount?: number;
-  approvedBy?:string
-}
-
-export async function updateLoanStatus(
-  loanId: string,
-  payload: UpdateLoanStatusPayload,
-  dispatch: Dispatch
-): Promise<void> {
-  try {
-    console.log({ 'payload s': payload });
-    const res = await Http.put(`${API_ROUTES.LOANS}/${loanId}`, payload);
-    if (res?.data?.success) {
-      showToastSuccess1('Loan status updated successfully');
-      fetchLoans(dispatch);
-    }
-    else {
-      showToastError('Failed to update loan status');
-    }
-  } catch (error) {
-    showToastError('Failed to update loan status')
-  }
 }
 

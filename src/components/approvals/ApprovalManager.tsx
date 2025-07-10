@@ -5,9 +5,9 @@ import ApprovalDetails from './ApprovalDetails';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 import { fetchLoans } from '../../services/fetch';
-import { updateLoanStatus } from '../../services/create';
 import { ILoan } from '../../types/loan';
 import { capitalizeFirstLetter } from '../../utils/utils';
+import { updateLoanStatus } from '../loans/services/loan_utils';
 
 export default function ApprovalManager() {
   // const {  updateLoan } = useData();

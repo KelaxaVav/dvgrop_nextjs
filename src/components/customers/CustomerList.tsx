@@ -4,9 +4,6 @@ import { Customer } from '../../types';
 import { useDispatch, useSelector } from "react-redux"
 import { ReduxState } from '../../types/redux_state';
 import { fetchCustomers } from '../../services/fetch';
-import Http from '../../utils/http';
-import { API_ROUTES } from '../../utils/api_routes';
-import { useData } from '../../contexts/DataContext';
 import { customerDelete } from './Service/CustomerService';
 
 interface CustomerListProps {
@@ -16,31 +13,19 @@ interface CustomerListProps {
 }
 
 export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCustomer }: CustomerListProps) {
-  const { customers, count } = useSelector((state: ReduxState) => state.customer);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const dispatch = useDispatch();
-  // const { deleteCustomer } = useData();
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.nic.includes(searchTerm) ||
     customer.phone.includes(searchTerm)
   );
 
-  // const handleDelete = async (id: string) => {
-  //   try {
-  //     const response = await Http.delete(`${API_ROUTES.CUSTOMERS}/${id}`);
-  //     if (response.data.success) {
-  //       setDeleteConfirm(null);
-  //       fetchCustomers(dispatch)
-  //     }
-  //   } catch (error) {
-  //     alert("Failed to delete customer.");
-  //   }
-  // };
+
   const handleDelete = (id: string) => {
     customerDelete(id, dispatch)
-    // deleteCustomer(id);
     setDeleteConfirm(null);
   };
 
