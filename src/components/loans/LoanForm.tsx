@@ -10,7 +10,6 @@ import { ExampleCalculationResult, getEMIFrequency, getExampleCalculation, getIn
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 import Http from '../../utils/http';
-import { fetchLoans } from '../../utils/fetch';
 import { showToastError, showToastSuccess } from '../../custom_component/toast';
 import { API_ROUTES } from '../../utils/api_routes';
 import { subscribeLoading } from '../../utils/loading';

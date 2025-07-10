@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { FileText, Plus, Search, Filter, Eye, Edit, Check, X } from 'lucide-react';
 import LoanForm from './LoanForm';
-import { fetchCustomers, fetchLoans } from '../../utils/fetch';
+import { fetchCustomers, fetchLoans } from '../../services/fetch';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 import { ILoan } from '../../types/loan';
 import { subscribeLoading } from '../../utils/loading';
 import PageLoader from '../../custom_component/loading';
-import { updateLoanStatus } from '../../services/common_crud';
 import { capitalizeFirstLetter } from '../../utils/utils';
+import { updateLoanStatus } from '../../services/create';
 
 export default function LoanManager() {
   const dispatch = useDispatch();

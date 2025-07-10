@@ -1,13 +1,13 @@
 import { toast } from 'react-toastify';
 
-export const showToastSuccess = (text: string, isEditMode?: boolean) => {
+export const showToastSuccess = (text: string, isEditMode: boolean) => {
   toast.success(
     isEditMode
-      ? `"${text}" is updated successfully`
-      : `"${text}" is created successfully`,
+      ? `"${text}" updated successfully`
+      : `"${text}" created successfully`,
     {
       style: {
-        backgroundColor: 'green', 
+        backgroundColor: "#3c8c3f", 
         color: 'white',
       },
     }
@@ -18,7 +18,7 @@ export const showToastSuccess1 = (text: string,) => {
     text,
     {
       style: {
-        backgroundColor: 'green', 
+        backgroundColor: "#3c8c3f", 
         color: 'white',
       },
     }
@@ -30,7 +30,7 @@ export const showDeleteSuccess = (text: string) => {
       `"${text}" deleted successfully`,
     {
       style: {
-        backgroundColor: 'green', 
+        backgroundColor:"#3c8c3f", 
         color: 'white',
       },
     }
@@ -41,7 +41,7 @@ export const showToastError = (text: string) => {
       text,
     {
       style: {
-        backgroundColor: 'red', 
+        backgroundColor: "#3c8c3f", 
         color: 'white',
       },
     }

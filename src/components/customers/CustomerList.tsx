@@ -3,9 +3,11 @@ import { Search, Plus, Edit, Eye, Trash2, Phone, Mail, Users } from 'lucide-reac
 import { Customer } from '../../types';
 import { useDispatch, useSelector } from "react-redux"
 import { ReduxState } from '../../types/redux_state';
-import { fetchCustomers } from '../../utils/fetch';
+import { fetchCustomers } from '../../services/fetch';
 import Http from '../../utils/http';
 import { API_ROUTES } from '../../utils/api_routes';
+import { useData } from '../../contexts/DataContext';
+import { customerDelete } from './Service/CustomerService';
 
 interface CustomerListProps {
   onAddCustomer: () => void;
@@ -18,23 +20,28 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const dispatch = useDispatch();
-
+  // const { deleteCustomer } = useData();
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.nic.includes(searchTerm) ||
     customer.phone.includes(searchTerm)
   );
 
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await Http.delete(`${API_ROUTES.CUSTOMERS}/${id}`);
-      if (response.data.success) {
-        setDeleteConfirm(null);
-        fetchCustomers(dispatch)
-      }
-    } catch (error) {
-      alert("Failed to delete customer.");
-    }
+  // const handleDelete = async (id: string) => {
+  //   try {
+  //     const response = await Http.delete(`${API_ROUTES.CUSTOMERS}/${id}`);
+  //     if (response.data.success) {
+  //       setDeleteConfirm(null);
+  //       fetchCustomers(dispatch)
+  //     }
+  //   } catch (error) {
+  //     alert("Failed to delete customer.");
+  //   }
+  // };
+  const handleDelete = (id: string) => {
+    customerDelete(id, dispatch)
+    // deleteCustomer(id);
+    setDeleteConfirm(null);
   };
 
   useEffect(() => {
@@ -155,7 +162,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
           )}
         </div>
       </div>
-      
+
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (

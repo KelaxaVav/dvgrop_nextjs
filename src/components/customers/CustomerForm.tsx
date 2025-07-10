@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { X, Upload, FileText } from "lucide-react";
 import { Customer } from "../../types";
-import { useData } from "../../contexts/DataContext";
-import axios from "axios";
+import { customerOnSubmitData } from "./Service/CustomerService";
+import { useDispatch } from "react-redux";
 
 interface CustomerFormProps {
   customer?: Customer;
+  // onSave: (customer: Omit<Customer, "id" | "createdAt" | "updatedAt">) => void;
   onCancel: () => void;
+  isEditMode: boolean;
+  setIsEditMode: Function;
+
 }
-export default function CustomerForm({
-  customer,
-  onCancel,
+export default function CustomerForm({customer,onCancel,isEditMode,setIsEditMode
 }: CustomerFormProps) {
-  const { emailSyncConfig } = useData();
   type MaritalStatus = "single" | "married";
   const [formData, setFormData] = useState({
     name: customer?.name || "",
@@ -25,50 +26,26 @@ export default function CustomerForm({
     occupation: customer?.occupation || "",
     income: customer?.income || 0,
     bankAccount: customer?.bankAccount || "",
-    addToEmailList: emailSyncConfig.syncOnCustomerRegistration,
+    addToEmailList: true,
   });
+  const dispatch = useDispatch();
 
   const [documents, setDocuments] = useState(customer?.documents || []);
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  try {
-    const token = localStorage.getItem("token");
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = {
+      ...formData,
+      maritalStatus: formData.maritalStatus as "married" | "single",
+      documents: documents, 
     };
+    try {
 
-    if (customer) {
-      const response = await axios.put(
-        `http://localhost:5000/api/v1/customers/${customer._id}`,
-        {
-          ...formData,
-          maritalStatus: formData.maritalStatus as "married" | "single",
-          documents,
-        },
-        { headers }
-      );
-       onCancel();
-      console.log("Customer updated:", response.data);
-
-    } else {
-      const response = await axios.post(
-        "http://localhost:5000/api/v1/customers",
-        {
-          ...formData,
-          maritalStatus: formData.maritalStatus as "married" | "single",
-          documents,
-        },
-        { headers }
-      );
-       onCancel();
-      console.log("Customer created:", response.data);
+      const typeId = customer?._id;
+      customerOnSubmitData(data, typeId ?? "", isEditMode,setIsEditMode, onCancel, dispatch)
+    } catch (error) {
+      console.error("Error saving customer:", error);
     }
-  } catch (error) {
-    console.error("Error saving customer:", error);
-  }
-};
+  };
 
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,7 +139,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   required
                   value={formData.maritalStatus}
                   onChange={(e) =>
-                    setFormData({ ...formData, maritalStatus: e.target.value as MaritalStatus})
+                    setFormData({ ...formData, maritalStatus: e.target.value as MaritalStatus })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
