@@ -156,14 +156,14 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
   //   onSave(paymentData);
   // };
 
-  const getPaymentModeIcon = (mode: string) => {
-    switch (mode) {
-      case 'cash': return <Banknote className="w-5 h-5" />;
-      case 'online': return <Building className="w-5 h-5" />;
-      case 'cheque': return <CreditCard className="w-5 h-5" />;
-      default: return <DollarSign className="w-5 h-5" />;
-    }
-  };
+  // const getPaymentModeIcon = (mode: string) => {
+  //   switch (mode) {
+  //     case 'cash': return <Banknote className="w-5 h-5" />;
+  //     case 'online': return <Building className="w-5 h-5" />;
+  //     case 'cheque': return <CreditCard className="w-5 h-5" />;
+  //     default: return <DollarSign className="w-5 h-5" />;
+  //   }
+  // };
 
   const isOverdue = new Date(repayment.dueDate) < new Date();
 

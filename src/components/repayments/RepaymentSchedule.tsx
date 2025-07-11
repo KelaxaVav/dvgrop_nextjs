@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { X, Calendar, DollarSign, CheckCircle, AlertTriangle, Clock, Download, Filter } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
-import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
 
 interface RepaymentScheduleProps {
   loanId: string;

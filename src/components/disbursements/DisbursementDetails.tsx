@@ -225,7 +225,7 @@ export default function DisbursementDetails({ loan, customer, onClose }: Disburs
                 </div>
                 <div className="flex justify-between">
                   <span className="text-purple-600 font-medium">Disbursed By:</span>
-                  <span className="text-purple-900">{loan.disbursedBy || 'N/A'}</span>
+                  <span className="text-purple-900">{loan?.disbursedBy?.name || 'N/A'}</span>
                 </div>
                 {loan.remarks && (
                   <div>

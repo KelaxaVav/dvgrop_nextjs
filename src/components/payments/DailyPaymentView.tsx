@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Calendar, 
   Search, 
@@ -9,19 +9,20 @@ import {
   ChevronRight, 
   CheckCircle, 
   AlertTriangle, 
-  Clock, 
   DollarSign, 
   Users,
   FileText,
   ArrowUpDown
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { Loan, Repayment, Customer } from '../../types';
+import { Customer } from '../../types';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 export default function DailyPaymentView() {
   const { loans, customers, repayments, updateRepayment } = useData();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+   const { user } = useSelector((state: ReduxState) => state.auth);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [groupBy, setGroupBy] = useState<'customer' | 'date'>('customer');
@@ -50,8 +51,8 @@ export default function DailyPaymentView() {
 
     // Map repayments to include customer and loan details
     const paymentsWithDetails = dailyRepayments.map(repayment => {
-      const loan = loans.find(l => l.id === repayment.loanId);
-      const customer = customers.find(c => c.id === loan?.customerId);
+      const loan = loans.find(l => l._id === repayment.loanId);
+      const customer = customers.find(c => c._id === loan?.customerId?._id);
       
       const isOverdue = new Date(repayment.dueDate) < new Date() && repayment.status !== 'paid';
       
@@ -87,7 +88,7 @@ export default function DailyPaymentView() {
       
       return (
         payment.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.loan?.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.loan?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         payment.repayment.id.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
@@ -123,7 +124,7 @@ export default function DailyPaymentView() {
     
     if (groupBy === 'customer') {
       const grouped = filteredPayments.reduce((acc, payment) => {
-        const customerId = payment.customer?.id || 'unknown';
+        const customerId = payment.customer?._id || 'unknown';
         if (!acc[customerId]) {
           acc[customerId] = {
             customer: payment.customer,
@@ -210,7 +211,7 @@ export default function DailyPaymentView() {
       const csvData = payments.map((payment, index) => [
         (index + 1).toString(),
         payment.customer?.name || 'Unknown',
-        payment.loan?.id || 'Unknown',
+        payment.loan?._id || 'Unknown',
         payment.repayment.dueDate,
         payment.nextPaymentDate || 'N/A',
         payment.repayment.amount.toString(),
@@ -471,7 +472,7 @@ export default function DailyPaymentView() {
                     <tr className="bg-gray-50">
                       <td colSpan={canEdit ? 8 : 7} className="px-6 py-3">
                         <div className="font-medium text-gray-900">
-                          {group.customer.name} - {group.customer.phone}
+                          {group?.customer?.name} - {group.customer.phone}
                         </div>
                       </td>
                     </tr>

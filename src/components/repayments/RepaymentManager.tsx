@@ -23,6 +23,9 @@ export default function RepaymentManager() {
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedRepayment, setSelectedRepayment] = useState<IPayment | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'details' | 'schedule' | 'bulk'>('list');
+  useEffect(()=>{
+    fetchPayments(dispatch)
+  },[dispatch])
 
   useEffect(() => {
     fetchPayments(dispatch);

@@ -1,6 +1,7 @@
 import { X, DollarSign, Calendar, User, FileText, CreditCard, AlertTriangle, CheckCircle, Download } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
 import { IPayment } from '../../types/payment';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface RepaymentDetailsProps {
   repayment: IPayment;
@@ -8,7 +9,8 @@ interface RepaymentDetailsProps {
 }
 
 export default function RepaymentDetails({ repayment, onClose }: RepaymentDetailsProps) {
-  const { loans, customers } = useData();
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   
   const loan = loans.find(l => l._id === repayment?.loanId?._id);
   const customer = customers.find(c => c._id === loan?.customerId);
