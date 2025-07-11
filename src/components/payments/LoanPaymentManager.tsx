@@ -6,7 +6,10 @@ import PaymentHistory from './PaymentHistory';
 import { Repayment } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
-import { fetchCustomers, fetchLoans } from '../../services/fetch';
+import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
+import { createData } from '../../services/create';
+import { API_ROUTES } from '../../utils/api_routes';
+import { IPayment } from '../../types/payment';
 
 type PaymentDataType = {
   amount: number;
@@ -181,17 +184,20 @@ export default function LoanPaymentManager() {
       setCurrentView('details');
     }
   };
-
+  const handleCancel = () => {
+    setCurrentView('list');
+    setSelectedRepayment(null);
+  }
   const handleViewHistory = (loanId: string) => {
     setSelectedLoan(loanId);
     setCurrentView('history');
   };
 
-  const handlePaymentSubmit = (paymentData: PaymentDataType) => {
+  const handlePaymentSubmit = async (paymentData: PaymentDataType) => {
     if (selectedRepayment) {
-      const normalizedPaymentDate = paymentData.paymentDate instanceof Date
-        ? paymentData.paymentDate.toISOString()
-        : paymentData.paymentDate;
+      const normalizedPaymentDate = paymentData?.paymentDate instanceof Date
+        ? paymentData?.paymentDate.toISOString()
+        : paymentData?.paymentDate;
 
       const allowedPaymentModes = ['cash', 'online', 'cheque'] as const;
 
@@ -199,8 +205,11 @@ export default function LoanPaymentManager() {
         allowedPaymentModes.includes(paymentData.paymentMode as any)
           ? paymentData.paymentMode as 'cash' | 'online' | 'cheque'
           : undefined;
-
-      const updatedRepayment: Partial<Repayment> = {
+      const formattedDueDate = selectedRepayment.dueDate.split('T')[0];
+      const updatedRepayment: Partial<IPayment> = {
+        amount: selectedRepayment?.amount,
+        dueDate: formattedDueDate,
+        emiNo: selectedRepayment.emiNo,
         paidAmount: paymentData.amount,
         paymentDate: normalizedPaymentDate,
         paymentMode,
@@ -209,13 +218,11 @@ export default function LoanPaymentManager() {
         penalty: paymentData.penalty || 0,
         remarks: paymentData.remarks
       };
-
-      // updateRepayment(selectedRepayment.id, updatedRepayment);
+      await createData(updatedRepayment, fetchPayments, handleCancel, 'Repayment updated', `${API_ROUTES.LOANS}/${selectedRepayment?.loanId?._id}/${API_ROUTES.PAYMENTS}`, dispatch);
     }
 
-    setCurrentView('list');
-    setSelectedRepayment(null);
   };
+
 
 
   // const getPaymentModeIcon = (mode: string) => {
@@ -272,10 +279,7 @@ export default function LoanPaymentManager() {
       <LoanPaymentForm
         repayment={selectedRepayment}
         onSubmit={handlePaymentSubmit}
-        onCancel={() => {
-          setCurrentView('list');
-          setSelectedRepayment(null);
-        }}
+        onCancel={handleCancel}
       />
     );
   }
@@ -284,10 +288,7 @@ export default function LoanPaymentManager() {
     return (
       <PaymentDetails
         payment={selectedRepayment}
-        onClose={() => {
-          setCurrentView('list');
-          setSelectedRepayment(null);
-        }}
+        onClose={handleCancel}
         onMakePayment={() => setCurrentView('payment')}
       />
     );
@@ -297,10 +298,7 @@ export default function LoanPaymentManager() {
     return (
       <PaymentHistory
         loanId={selectedLoan}
-        onClose={() => {
-          setCurrentView('list');
-          setSelectedLoan(null);
-        }}
+        onClose={handleCancel}
       />
     );
   }
@@ -532,14 +530,14 @@ export default function LoanPaymentManager() {
 
               <div className="flex flex-col space-y-2 ml-6">
                 {payment.nextPayment && payment.loanPaymentStatus !== 'completed' && (
-                <button
-                  onClick={() => handleMakePayment(payment)}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                >
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Make Payment
-                </button>
-                 )} 
+                  <button
+                    onClick={() => handleMakePayment(payment)}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                  >
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Make Payment
+                  </button>
+                )}
                 {payment.nextPayment && (
                   <button
                     onClick={() => handleViewDetails(payment)}

@@ -61,14 +61,6 @@ export const deleteType = async (fetchData: Function, text: string, route: strin
     }
 }
 
-export const handleClose = async (setShowModal: Function) => {
-    setShowModal(false)
-};
-
-export const deleteClick = async (row: any, setShowModal: Function, setSelectedRow: Function,) => {
-    setShowModal(true);
-    setSelectedRow(row);
-}
 
 export const createData = async (
     requestData: any,
@@ -80,7 +72,7 @@ export const createData = async (
 ) => {
 
     try {
-        const response = await Http.put(route, requestData);
+        const response = await Http.post(route, requestData);
         if (response.data.success === true) {
             await fetchData(dispatch);
             showToastSuccess1(text);

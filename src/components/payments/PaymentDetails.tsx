@@ -82,7 +82,7 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Payment ID</p>
-                  <p className="font-medium">{payment.id}</p>
+                  <p className="font-medium">{payment._id}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">EMI Number</p>
@@ -239,44 +239,44 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Loan ID</p>
-                    <p className="font-medium">{payment.loan.id}</p>
+                    <p className="font-medium">{payment?.loan?._id}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Loan Type</p>
-                    <p className="font-medium capitalize">{payment.loan.type}</p>
+                    <p className="font-medium capitalize">{payment?.loan?.type}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Principal Amount</p>
-                    <p className="font-medium">LKR {(payment.loan.approvedAmount || payment.loan.requestedAmount).toLocaleString()}</p>
+                    <p className="font-medium">LKR {(payment?.loan?.approvedAmount || payment?.loan?.requestedAmount).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Interest Rate</p>
-                    <p className="font-medium">{payment.loan.interestRate}% per month</p>
+                    <p className="font-medium">{payment?.loan?.interestRate}% per month</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Loan Period</p>
-                    <p className="font-medium">{payment.loan.period} months</p>
+                    <p className="font-medium">{payment?.loan?.period} months</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Monthly EMI</p>
-                    <p className="font-medium">LKR {payment.loan.emi.toLocaleString()}</p>
+                    <p className="font-medium">LKR {payment?.loan?.emi.toLocaleString()}</p>
                   </div>
                 </div>
 
                 <div>
                   <p className="text-sm text-gray-600">Loan Status</p>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    payment.loan.status === 'active' ? 'bg-green-100 text-green-800' :
-                    payment.loan.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                    payment?.loan?.status === 'active' ? 'bg-green-100 text-green-800' :
+                    payment?.loan?.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {payment.loan.status}
+                    {payment?.loan?.status}
                   </span>
                 </div>
               </div>
@@ -291,7 +291,7 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">EMI Progress:</span>
-                <span className="font-medium">{payment.emiNo} of {payment.loan?.period || 'N/A'}</span>
+                <span className="font-medium">{payment?.emiNo} of {payment?.loan?.period || 'N/A'}</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 

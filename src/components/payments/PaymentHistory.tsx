@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Calendar, DollarSign, CheckCircle, AlertTriangle, Clock, Download, Filter, Search } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface PaymentHistoryProps {
   loanId: string;
@@ -8,25 +9,31 @@ interface PaymentHistoryProps {
 }
 
 export default function PaymentHistory({ loanId, onClose }: PaymentHistoryProps) {
-  const { repayments, loans, customers } = useData();
+  // const { repayments, loans, customers } = useData();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const { payments } = useSelector((state: ReduxState) => state.payment);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+
   const loan = loans.find(l => l._id === loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
-  const loanRepayments = repayments
-    .filter(r => r.loanId === loanId)
+  const customer = customers.find(c => c._id === loan?.customerId);
+  
+  const loanRepayments = payments
+    .filter(r => r.loanId?._id === loanId)
     .sort((a, b) => a.emiNo - b.emiNo);
 
   const filteredRepayments = loanRepayments.filter(repayment => {
     const matchesStatus = statusFilter === 'all' || repayment.status === statusFilter;
     const matchesSearch = searchTerm === '' || 
       repayment.emiNo.toString().includes(searchTerm) ||
-      repayment.id.toLowerCase().includes(searchTerm.toLowerCase());
+      repayment._id.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
   const getHistoryStats = () => {
+    console.log("customer dtaa ",customers)
+    console.log("loan dtaa ",loan)
     const totalEMIs = loanRepayments.length;
     const paidEMIs = loanRepayments.filter(r => r.status === 'paid').length;
     const partialEMIs = loanRepayments.filter(r => r.status === 'partial').length;
@@ -286,13 +293,13 @@ export default function PaymentHistory({ loanId, onClose }: PaymentHistoryProps)
                 const isOverdue = repayment.status === 'pending' && new Date(repayment.dueDate) < new Date();
                 
                 return (
-                  <tr key={repayment.id} className={`hover:bg-gray-50 ${isOverdue ? 'bg-red-50' : ''}`}>
+                  <tr key={repayment._id} className={`hover:bg-gray-50 ${isOverdue ? 'bg-red-50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {getStatusIcon(repayment)}
                         <div className="ml-3">
                           <p className="text-sm font-medium text-gray-900">EMI #{repayment.emiNo}</p>
-                          <p className="text-sm text-gray-500">ID: {repayment.id}</p>
+                          <p className="text-sm text-gray-500">ID: {repayment._id}</p>
                         </div>
                       </div>
                     </td>
