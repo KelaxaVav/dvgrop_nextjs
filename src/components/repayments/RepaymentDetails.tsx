@@ -1,18 +1,17 @@
-import React from 'react';
 import { X, DollarSign, Calendar, User, FileText, CreditCard, AlertTriangle, CheckCircle, Download } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
-import { Repayment } from '../../types';
+import { IPayment } from '../../types/payment';
 
 interface RepaymentDetailsProps {
-  repayment: Repayment;
+  repayment: IPayment;
   onClose: () => void;
 }
 
 export default function RepaymentDetails({ repayment, onClose }: RepaymentDetailsProps) {
   const { loans, customers } = useData();
   
-  const loan = loans.find(l => l.id === repayment.loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
+  const loan = loans.find(l => l._id === repayment?.loanId?._id);
+  const customer = customers.find(c => c._id === loan?.customerId);
   
   const isOverdue = repayment.status === 'pending' && new Date(repayment.dueDate) < new Date();
   const isPaid = repayment.status === 'paid';
@@ -39,7 +38,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
   const generateReceipt = () => {
     // Mock receipt generation
     const receiptData = {
-      receiptNumber: `RCP-${repayment.id}`,
+      receiptNumber: `RCP-${repayment._id}`,
       date: repayment.paymentDate || new Date().toISOString(),
       customer: customer?.name,
       loanId: repayment.loanId,
@@ -60,7 +59,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Repayment Details</h2>
-          <p className="text-gray-600">EMI #{repayment.emiNo} for Loan {repayment.loanId}</p>
+          <p className="text-gray-600">EMI #{repayment.emiNo} for Loan {repayment?.loanId?._id}</p>
         </div>
         <button
           onClick={onClose}
@@ -110,7 +109,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Repayment ID:</span>
-                <span className="font-medium">{repayment.id}</span>
+                <span className="font-medium">{repayment._id}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">EMI Number:</span>
@@ -178,7 +177,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
                     <span className="font-medium capitalize">{repayment.paymentMode}</span>
                   </div>
                 )}
-                {repayment.remarks && (
+                {repayment?.remarks && (
                   <div>
                     <span className="text-gray-600">Remarks:</span>
                     <p className="font-medium mt-1">{repayment.remarks}</p>
@@ -233,7 +232,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Loan ID:</span>
-                  <span className="font-medium">{loan.id}</span>
+                  <span className="font-medium">{loan._id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Loan Type:</span>

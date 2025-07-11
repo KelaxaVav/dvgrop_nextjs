@@ -56,7 +56,8 @@ export const getRepayment = asyncHandler(async (req, res, next) => {
 // @access  Private
 export const createRepayment = asyncHandler(async (req, res, next) => {
   req.body.loanId = req.params.loanId;
-  req.body.processedBy = req.user.id;
+  req.body.processedBy = req?.user?._id;
+  console.log({'req':req});
 
   const loan = await Loan.findById(req.params.loanId);
 

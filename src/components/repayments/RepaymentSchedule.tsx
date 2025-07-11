@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Calendar, DollarSign, CheckCircle, AlertTriangle, Clock, Download, Filter } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
+import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
 
 interface RepaymentScheduleProps {
   loanId: string;
@@ -8,12 +10,14 @@ interface RepaymentScheduleProps {
 }
 
 export default function RepaymentSchedule({ loanId, onClose }: RepaymentScheduleProps) {
-  const { repayments, loans, customers } = useData();
   const [statusFilter, setStatusFilter] = useState('all');
+   const { payments } = useSelector((state: ReduxState) => state.payment);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
   
-  const loan = loans.find(l => l.id === loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
-  const loanRepayments = repayments.filter(r => r.loanId === loanId).sort((a, b) => a.emiNo - b.emiNo);
+  const loan = loans.find(l => l._id === loanId);
+  const customer = customers.find(c => c._id === loan?.customerId);
+  const loanRepayments = payments.filter(r => r.loanId?._id === loanId).sort((a, b) => a.emiNo - b.emiNo);
 
   const filteredRepayments = loanRepayments.filter(repayment => {
     if (statusFilter === 'all') return true;
@@ -22,6 +26,8 @@ export default function RepaymentSchedule({ loanId, onClose }: RepaymentSchedule
     }
     return repayment.status === statusFilter;
   });
+
+  
 
   const getScheduleStats = () => {
     const totalEMIs = loanRepayments.length;
@@ -269,7 +275,7 @@ export default function RepaymentSchedule({ loanId, onClose }: RepaymentSchedule
                 const isOverdue = repayment.status === 'pending' && new Date(repayment.dueDate) < new Date();
                 
                 return (
-                  <tr key={repayment.id} className={`hover:bg-gray-50 ${isOverdue ? 'bg-red-50' : ''}`}>
+                  <tr key={repayment?._id} className={`hover:bg-gray-50 ${isOverdue ? 'bg-red-50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {getStatusIcon(repayment)}

@@ -2,7 +2,7 @@ import { ICustomer } from "./customer";
 
 export interface ILoan {
     _id: string;
-    customerId: ICustomer;
+    customerId: string;
     type: "personal" | "business" | "agriculture" | "vehicle" | "housing";
     requestedAmount: number;
     interestRate: number;

@@ -17,6 +17,7 @@ import Http from "../utils/http";
 import { API_ROUTES } from "../utils/api_routes";
 import { fetchCustomers, fetchLoans, fetchPayments, fetchUsers } from "../services/fetch";
 import { ILoan } from "../types/loan";
+import { IPayment } from "../types/payment";
 
 interface DataContextType {
   customers: Customer[];
@@ -34,7 +35,7 @@ interface DataContextType {
   addLoan: (loan: Omit<ILoan, "id" | "createdAt" | "updatedAt">) => void;
   updateLoan: (id: string, loan: Partial<ILoan>) => void;
   addRepayment: (repayment: Omit<Repayment, "id">) => void;
-  updateRepayment: (id: string, repayment: Partial<Repayment>) => void;
+  updateRepayment: (id: string, repayment: Partial<IPayment>) => void;
   generateLoanSchedule: (loanId: string) => void;
   addUser: (user: Omit<User, "id" | "createdAt" | "updatedAt">) => void;
   updateUser: (id: string, user: Partial<User>) => void;
@@ -65,117 +66,117 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
 
   // Load data from localStorage on mount
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token"); // Adjust key name if different
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Adjust key name if different
 
-  //       const headers = {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       };
-  //       const [customersRes, loansRes, repaymentsRes, usersRes] =
-  //         await Promise.all([
-  //           fetchCustomers(dispatch),
-  //           fetchLoans(dispatch),
-  //           fetchPayments(dispatch),
-  //           fetchUsers(dispatch)
-  //         ]);
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+        const [customersRes, loansRes, repaymentsRes, usersRes] =
+          await Promise.all([
+            fetchCustomers(dispatch),
+            fetchLoans(dispatch),
+            fetchPayments(dispatch),
+            fetchUsers(dispatch)
+          ]);
 
-  //     } catch (err) {
-  //       console.error("Error loading data from API:", err);
-  //     }
-  //   };
-  //   fetchData();
-  //   // const savedCustomers = localStorage.getItem('lms_customers');
-  //   // const savedLoans = localStorage.getItem('lms_loans');
-  //   // const savedRepayments = localStorage.getItem('lms_repayments');
-  //   // const savedUsers = localStorage.getItem('lms_users');
-  //   const savedLoginLogs = localStorage.getItem("lms_login_logs");
-  //   const savedEmailContacts = localStorage.getItem("lms_email_contacts");
-  //   const savedEmailSyncConfig = localStorage.getItem("lms_email_sync_config");
+      } catch (err) {
+        console.error("Error loading data from API:", err);
+      }
+    };
+    fetchData();
+    // const savedCustomers = localStorage.getItem('lms_customers');
+    // const savedLoans = localStorage.getItem('lms_loans');
+    // const savedRepayments = localStorage.getItem('lms_repayments');
+    // const savedUsers = localStorage.getItem('lms_users');
+    const savedLoginLogs = localStorage.getItem("lms_login_logs");
+    const savedEmailContacts = localStorage.getItem("lms_email_contacts");
+    const savedEmailSyncConfig = localStorage.getItem("lms_email_sync_config");
 
-  //   // if (savedCustomers) {
-  //   //   try {
-  //   //     setCustomers(JSON.parse(savedCustomers));
-  //   //   } catch (e) {
-  //   //     console.error('Error loading customers from localStorage:', e);
-  //   //   }
-  //   // }
-  //   // if (savedLoans) {
-  //   //   try {
-  //   //     setLoans(JSON.parse(savedLoans));
-  //   //   } catch (e) {
-  //   //     console.error('Error loading loans from localStorage:', e);
-  //   //   }
-  //   // }
-  //   // if (savedRepayments) {
-  //   //   try {
-  //   //     setRepayments(JSON.parse(savedRepayments));
-  //   //   } catch (e) {
-  //   //     console.error('Error loading repayments from localStorage:', e);
-  //   //   }
-  //   // }
-  //   // if (savedUsers) {
-  //   //   try {
-  //   //     setUsers(JSON.parse(savedUsers));
-  //   //   } catch (e) {
-  //   //     console.error('Error loading users from localStorage:', e);
-  //   //   }
-  //   // }
-  //   if (savedLoginLogs) {
-  //     try {
-  //       setLoginLogs(JSON.parse(savedLoginLogs));
-  //     } catch (e) {
-  //       console.error("Error loading login logs from localStorage:", e);
-  //     }
-  //   }
-  //   if (savedEmailContacts) {
-  //     try {
-  //       setEmailContacts(JSON.parse(savedEmailContacts));
-  //     } catch (e) {
-  //       console.error("Error loading email contacts from localStorage:", e);
-  //     }
-  //   }
-  //   if (savedEmailSyncConfig) {
-  //     try {
-  //       setEmailSyncConfig(JSON.parse(savedEmailSyncConfig));
-  //     } catch (e) {
-  //       console.error("Error loading email sync config from localStorage:", e);
-  //     }
-  //   }
-  // }, [dispatch]);
+    // if (savedCustomers) {
+    //   try {
+    //     setCustomers(JSON.parse(savedCustomers));
+    //   } catch (e) {
+    //     console.error('Error loading customers from localStorage:', e);
+    //   }
+    // }
+    // if (savedLoans) {
+    //   try {
+    //     setLoans(JSON.parse(savedLoans));
+    //   } catch (e) {
+    //     console.error('Error loading loans from localStorage:', e);
+    //   }
+    // }
+    // if (savedRepayments) {
+    //   try {
+    //     setRepayments(JSON.parse(savedRepayments));
+    //   } catch (e) {
+    //     console.error('Error loading repayments from localStorage:', e);
+    //   }
+    // }
+    // if (savedUsers) {
+    //   try {
+    //     setUsers(JSON.parse(savedUsers));
+    //   } catch (e) {
+    //     console.error('Error loading users from localStorage:', e);
+    //   }
+    // }
+    if (savedLoginLogs) {
+      try {
+        setLoginLogs(JSON.parse(savedLoginLogs));
+      } catch (e) {
+        console.error("Error loading login logs from localStorage:", e);
+      }
+    }
+    if (savedEmailContacts) {
+      try {
+        setEmailContacts(JSON.parse(savedEmailContacts));
+      } catch (e) {
+        console.error("Error loading email contacts from localStorage:", e);
+      }
+    }
+    if (savedEmailSyncConfig) {
+      try {
+        setEmailSyncConfig(JSON.parse(savedEmailSyncConfig));
+      } catch (e) {
+        console.error("Error loading email sync config from localStorage:", e);
+      }
+    }
+  }, [dispatch]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_customers", JSON.stringify(customers));
-  // }, [customers]);
+  useEffect(() => {
+    localStorage.setItem("lms_customers", JSON.stringify(customers));
+  }, [customers]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_loans", JSON.stringify(loans));
-  // }, [loans]);
+  useEffect(() => {
+    localStorage.setItem("lms_loans", JSON.stringify(loans));
+  }, [loans]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_repayments", JSON.stringify(repayments));
-  // }, [repayments]);
+  useEffect(() => {
+    localStorage.setItem("lms_repayments", JSON.stringify(repayments));
+  }, [repayments]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_users", JSON.stringify(users));
-  // }, [users]);
+  useEffect(() => {
+    localStorage.setItem("lms_users", JSON.stringify(users));
+  }, [users]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_login_logs", JSON.stringify(loginLogs));
-  // }, [loginLogs]);
+  useEffect(() => {
+    localStorage.setItem("lms_login_logs", JSON.stringify(loginLogs));
+  }, [loginLogs]);
 
-  // useEffect(() => {
-  //   localStorage.setItem("lms_email_contacts", JSON.stringify(emailContacts));
-  // }, [emailContacts]);
+  useEffect(() => {
+    localStorage.setItem("lms_email_contacts", JSON.stringify(emailContacts));
+  }, [emailContacts]);
 
-  // useEffect(() => {
-  //   localStorage.setItem(
-  //     "lms_email_sync_config",
-  //     JSON.stringify(emailSyncConfig)
-  //   );
-  // }, [emailSyncConfig]);
+  useEffect(() => {
+    localStorage.setItem(
+      "lms_email_sync_config",
+      JSON.stringify(emailSyncConfig)
+    );
+  }, [emailSyncConfig]);
 
   useEffect(() => {
     if (emailSyncConfig?.enabled) {
@@ -308,7 +309,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (updates.status === "approved" && emailSyncConfig?.syncOnLoanApproval) {
      
       if (loan) {
-        const customer = customers?.find((c) => c._id === loan.customerId._id);
+        const customer = customers?.find((c) => c._id === loan.customerId);
         if (customer && customer.email) {
           // Check if contact already exists
           const existingContact = emailContacts?.find(
@@ -349,7 +350,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setRepayments((prev:any) => [...prev, newRepayment]);
   };
 
-  const updateRepayment = (id: string, updates: Partial<Repayment>) => {
+  const updateRepayment = (id: string, updates: Partial<IPayment>) => {
     setRepayments((prev:any) =>
       prev.map((repayment:any) =>
         repayment.id === id ? { ...repayment, ...updates } : repayment

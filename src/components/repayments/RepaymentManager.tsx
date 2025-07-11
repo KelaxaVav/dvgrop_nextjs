@@ -1,23 +1,35 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Calendar, DollarSign, AlertTriangle, CheckCircle, Clock, TrendingUp, Search, Filter, Plus, Eye, Edit, Download } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { Repayment, Loan } from '../../types';
 import RepaymentForm from './RepaymentForm';
 import RepaymentDetails from './RepaymentDetails';
 import RepaymentSchedule from './RepaymentSchedule';
 import BulkPaymentProcessor from './BulkPaymentProcessor';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
+import { ReduxState } from '../../types/redux_state';
+import { IPayment } from '../../types/payment';
+import { capitalizeFirstLetter } from '../../utils/utils';
 
 export default function RepaymentManager() {
-  const { repayments, loans, customers, updateRepayment, addRepayment } = useData();
-  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const { payments } = useSelector((state: ReduxState) => state.payment);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+
+  const {  updateRepayment, addRepayment } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  const [selectedRepayment, setSelectedRepayment] = useState<Repayment | null>(null);
+  const [selectedRepayment, setSelectedRepayment] = useState<IPayment | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'details' | 'schedule' | 'bulk'>('list');
 
-  // Get penalty settings from localStorage
+  useEffect(() => {
+    fetchPayments(dispatch);
+    fetchLoans(dispatch);
+    fetchCustomers(dispatch)
+  }, [dispatch]);
+
   const getPenaltySettings = () => {
     try {
       const advancedSettings = localStorage.getItem('lms_advanced_settings');
@@ -33,24 +45,23 @@ export default function RepaymentManager() {
 
   const penaltySettings = getPenaltySettings();
 
-  // Calculate repayment statistics
   const getRepaymentStats = () => {
     const today = new Date();
     const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    const totalRepayments = repayments.length;
-    const paidRepayments = repayments.filter(r => r.status === 'paid');
-    const overdueRepayments = repayments.filter(r => {
+
+    const totalRepayments = payments.length;
+    const paidRepayments = payments.filter(r => r.status === 'paid');
+    const overdueRepayments = payments.filter(r => {
       return r.status === 'pending' && new Date(r.dueDate) < today;
     });
-    const dueToday = repayments.filter(r => {
+    const dueToday = payments.filter(r => {
       return r.status === 'pending' && new Date(r.dueDate).toDateString() === today.toDateString();
     });
     const thisMonthCollection = paidRepayments
       .filter(r => r.paymentDate && new Date(r.paymentDate) >= thisMonth)
       .reduce((sum, r) => sum + (r.paidAmount || 0), 0);
-    
-    const totalExpected = repayments.reduce((sum, r) => sum + r.amount, 0);
+
+    const totalExpected = payments.reduce((sum, r) => sum + r.amount, 0);
     const totalCollected = paidRepayments.reduce((sum, r) => sum + (r.paidAmount || 0), 0);
     const collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0;
 
@@ -61,28 +72,27 @@ export default function RepaymentManager() {
       dueTodayCount: dueToday.length,
       thisMonthCollection,
       collectionRate,
-      totalOutstanding: repayments.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.balance, 0)
+      totalOutstanding: payments.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.balance, 0)
     };
   };
 
   const stats = getRepaymentStats();
 
-  // Filter repayments based on search and filters
-  const filteredRepayments = repayments.filter(repayment => {
-    const loan = loans.find(l => l.id === repayment.loanId);
-    const customer = customers.find(c => c.id === loan?.customerId);
-    
+  const filteredRepayments = payments.filter(repayment => {
+    const loan = loans.find(l => l._id === repayment.loanId?._id);
+    const customer = customers.find(c => c._id === loan?.customerId);
+
     const matchesSearch = customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         repayment.loanId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         repayment.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
+      repayment?.loanId?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      repayment._id.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus = statusFilter === 'all' || repayment.status === statusFilter;
-    
+
     let matchesDate = true;
     if (dateFilter !== 'all') {
       const dueDate = new Date(repayment.dueDate);
       const today = new Date();
-      
+
       switch (dateFilter) {
         case 'overdue':
           matchesDate = repayment.status === 'pending' && dueDate < today;
@@ -100,28 +110,28 @@ export default function RepaymentManager() {
           break;
       }
     }
-    
+
     return matchesSearch && matchesStatus && matchesDate;
   });
 
-  const handleRecordPayment = (repayment: Repayment) => {
+  const handleRecordPayment = (repayment: IPayment) => {
     setSelectedRepayment(repayment);
     setCurrentView('add');
   };
 
-  const handleViewDetails = (repayment: Repayment) => {
+  const handleViewDetails = (repayment: IPayment) => {
     setSelectedRepayment(repayment);
     setCurrentView('details');
   };
 
-  const handleViewSchedule = (loanId: string) => {
-    setSelectedRepayment({ loanId } as Repayment);
+  const handleViewSchedule = (repayment: IPayment) => {
+    setSelectedRepayment(repayment);
     setCurrentView('schedule');
   };
 
   const handleSavePayment = (paymentData: any) => {
     if (selectedRepayment) {
-      const updatedRepayment: Partial<Repayment> = {
+      const updatedRepayment: Partial<IPayment> = {
         paidAmount: paymentData.amount,
         paymentDate: paymentData.paymentDate,
         paymentMode: paymentData.paymentMode,
@@ -131,9 +141,9 @@ export default function RepaymentManager() {
         remarks: paymentData.remarks
       };
 
-      updateRepayment(selectedRepayment.id, updatedRepayment);
+      updateRepayment(selectedRepayment._id, updatedRepayment);
     }
-    
+
     setCurrentView('list');
     setSelectedRepayment(null);
   };
@@ -148,15 +158,15 @@ export default function RepaymentManager() {
     }
   };
 
-  const isOverdue = (repayment: Repayment) => {
+  const isOverdue = (repayment: IPayment) => {
     return repayment.status === 'pending' && new Date(repayment.dueDate) < new Date();
   };
 
-  const calculatePenalty = (repayment: Repayment) => {
+  const calculatePenalty = (repayment: IPayment) => {
     if (!isOverdue(repayment)) return 0;
-    
+
     const daysOverdue = Math.floor((new Date().getTime() - new Date(repayment.dueDate).getTime()) / (1000 * 60 * 60 * 24));
-    
+
     switch (penaltySettings.penaltyType) {
       case 'per_day':
         return Math.round(repayment.amount * (penaltySettings.penaltyRate / 100) * daysOverdue);
@@ -198,7 +208,7 @@ export default function RepaymentManager() {
   if (currentView === 'schedule' && selectedRepayment) {
     return (
       <RepaymentSchedule
-        loanId={selectedRepayment.loanId}
+        loanId={selectedRepayment?.loanId?._id}
         onClose={() => {
           setCurrentView('list');
           setSelectedRepayment(null);
@@ -217,7 +227,6 @@ export default function RepaymentManager() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Repayment Management</h2>
@@ -234,7 +243,6 @@ export default function RepaymentManager() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <div className="flex items-center">
@@ -285,7 +293,6 @@ export default function RepaymentManager() {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 rounded-xl p-6">
           <div className="flex items-center justify-between">
@@ -323,7 +330,6 @@ export default function RepaymentManager() {
         </div>
       </div>
 
-      {/* Search and Filters */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -391,28 +397,28 @@ export default function RepaymentManager() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRepayments.map((repayment) => {
-                const loan = loans.find(l => l.id === repayment.loanId);
-                const customer = customers.find(c => c.id === loan?.customerId);
+              {filteredRepayments?.map((repayment) => {
+                const loan = loans?.find(l => l?._id === repayment?.loanId?._id);
+                const customer = customers.find(c => c?._id === loan?.customerId);
                 const overdue = isOverdue(repayment);
                 const penalty = calculatePenalty(repayment);
-                
+
                 return (
-                  <tr key={repayment.id} className={`hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
+                  <tr key={repayment?._id} className={`hover:bg-gray-50 ${overdue ? 'bg-red-50' : ''}`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{customer?.name}</div>
-                        <div className="text-sm text-gray-500">Loan: {repayment.loanId}</div>
+                        <div className="text-sm font-medium text-gray-900">{capitalizeFirstLetter(customer?.name ?? "")}</div>
+                        <div className="text-sm text-gray-500">Loan: {repayment?.loanId?._id}</div>
                         <div className="text-sm text-gray-500">{customer?.phone}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">EMI #{repayment.emiNo}</div>
-                        <div className="text-sm text-gray-500">{loan?.type} loan</div>
-                        {repayment.paymentDate && (
+                        <div className="text-sm font-medium text-gray-900">EMI #{repayment?.emiNo}</div>
+                        <div className="text-sm text-gray-500">{capitalizeFirstLetter(loan?.type ?? '')} loan</div>
+                        {repayment?.paymentDate && (
                           <div className="text-sm text-green-600">
-                            Paid: {new Date(repayment.paymentDate).toLocaleDateString()}
+                            Paid: {new Date(repayment?.paymentDate).toLocaleDateString()}
                           </div>
                         )}
                       </div>
@@ -420,11 +426,11 @@ export default function RepaymentManager() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className={`text-sm font-medium ${overdue ? 'text-red-600' : 'text-gray-900'}`}>
-                          {new Date(repayment.dueDate).toLocaleDateString()}
+                          {new Date(repayment?.dueDate).toLocaleDateString()}
                         </div>
                         {overdue && (
                           <div className="text-sm text-red-600">
-                            {Math.floor((new Date().getTime() - new Date(repayment.dueDate).getTime()) / (1000 * 60 * 60 * 24))} days overdue
+                            {Math.floor((new Date().getTime() - new Date(repayment?.dueDate).getTime()) / (1000 * 60 * 60 * 24))} days overdue
                           </div>
                         )}
                       </div>
@@ -432,32 +438,31 @@ export default function RepaymentManager() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          LKR {repayment.amount.toLocaleString()}
+                          LKR {repayment?.amount.toLocaleString()}
                         </div>
-                        {repayment.paidAmount && (
+                        {repayment?.paidAmount && (
                           <div className="text-sm text-green-600">
-                            Paid: LKR {repayment.paidAmount.toLocaleString()}
+                            Paid: LKR {repayment?.paidAmount.toLocaleString()}
                           </div>
                         )}
-                        {repayment.balance > 0 && (
+                        {repayment?.balance > 0 && (
                           <div className="text-sm text-red-600">
-                            Balance: LKR {repayment.balance.toLocaleString()}
+                            Balance: LKR {repayment?.balance.toLocaleString()}
                           </div>
                         )}
                         {penalty > 0 && (
                           <div className="text-sm text-red-600">
-                            Penalty: LKR {penalty.toLocaleString()}
+                            Penalty: LKR {penalty?.toLocaleString()}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        overdue && repayment.status === 'pending' 
-                          ? 'bg-red-100 text-red-800' 
-                          : getStatusColor(repayment.status)
-                      }`}>
-                        {overdue && repayment.status === 'pending' ? 'overdue' : repayment.status}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${overdue && repayment?.status === 'pending'
+                          ? 'bg-red-100 text-red-800'
+                          : getStatusColor(repayment?.status)
+                        }`}>
+                        {overdue && repayment?.status === 'pending' ? 'overdue' : repayment?.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -469,7 +474,7 @@ export default function RepaymentManager() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {repayment.status !== 'paid' && (
+                        {repayment?.status !== 'paid' && (
                           <button
                             onClick={() => handleRecordPayment(repayment)}
                             className="text-green-600 hover:text-green-900"
@@ -479,7 +484,7 @@ export default function RepaymentManager() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleViewSchedule(repayment.loanId)}
+                          onClick={() => handleViewSchedule(repayment)}
                           className="text-purple-600 hover:text-purple-900"
                           title="View Schedule"
                         >
@@ -494,7 +499,7 @@ export default function RepaymentManager() {
           </table>
         </div>
 
-        {filteredRepayments.length === 0 && (
+        {filteredRepayments?.length === 0 && (
           <div className="text-center py-12">
             <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">No repayments found</h3>
