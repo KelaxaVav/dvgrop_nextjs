@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { X, Upload, Download, CheckCircle, AlertTriangle, DollarSign, FileText, Users } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 
@@ -22,7 +20,8 @@ interface BulkPaymentRecord {
 
 export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorProps) {
   // const { repayments, loans, customers, updateRepayment } = useData();
-    const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { payments } = useSelector((state: ReduxState) => state.payment);
   const { customers } = useSelector((state: ReduxState) => state.customer);
   const { user } = useSelector((state: ReduxState) => state.auth);
   const [bulkPayments, setBulkPayments] = useState<BulkPaymentRecord[]>([]);
@@ -75,10 +74,14 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
     const validatedPayments = bulkPayments.map(payment => {
       const errors = [];
       
-      // Find the repayment record
-      const repayment = repayments.find((r:any) => 
+      const repayment = payments.find((r:any) => 
         r.loanId === payment.loanId && r.emiNo === payment.emiNo
       );
+
+      console.log({'payments':payments});
+      console.log({'payment.loanId':payment?.loanId});
+      console.log({'repayment':repayment});
+      
       
       if (!repayment) {
         errors.push('Repayment record not found');
@@ -122,7 +125,7 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
       if (payment.status === 'error') continue;
       
       try {
-        const repayment = repayments.find(r => 
+        const repayment = payments.find((r:any) => 
           r.loanId === payment.loanId && r.emiNo === payment.emiNo
         );
         
@@ -136,7 +139,7 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
             remarks: payment.remarks
           };
           
-          updateRepayment(repayment.id, updatedRepayment);
+          // updateRepayment(repayment._id, updatedRepayment);
           
           processedPayments[i] = {
             ...payment,
@@ -230,7 +233,6 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Bulk Payment Processor</h2>
@@ -244,7 +246,6 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
         </button>
       </div>
 
-      {/* Progress Steps */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex items-center justify-between">
           {[
@@ -267,7 +268,6 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
         </div>
       </div>
 
-      {/* Step Content */}
       {currentStep === 'upload' && (
         <div className="bg-white p-6 rounded-xl shadow-sm border">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Upload Payment File</h3>

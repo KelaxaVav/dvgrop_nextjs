@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
 import Http from "../utils/http";
-import { showDeleteSuccess, showToastError, showToastSuccess, } from "../custom_component/toast";
+import { showDeleteSuccess, showToastError, showToastSuccess, showToastSuccess1, } from "../custom_component/toast";
 import { handleApiError } from "../utils/handle_api_error";
 
 export const submitData = async (
@@ -68,5 +68,30 @@ export const handleClose = async (setShowModal: Function) => {
 export const deleteClick = async (row: any, setShowModal: Function, setSelectedRow: Function,) => {
     setShowModal(true);
     setSelectedRow(row);
+}
+
+export const createData = async (
+    requestData: any,
+    fetchData: Function,
+    onCancel: Function,
+    text: string,
+    route: string,
+    dispatch: Dispatch,
+) => {
+
+    try {
+        const response = await Http.put(route, requestData);
+        if (response.data.success === true) {
+            await fetchData(dispatch);
+            showToastSuccess1(text);
+            onCancel();
+        } else {
+            const errorMessage = response?.data?.meta?.message || 'Something went wrong!';
+            showToastError(errorMessage);
+        }
+
+    } catch (error: unknown) {
+        handleApiError(error, 'Failed to create');
+    }
 }
 

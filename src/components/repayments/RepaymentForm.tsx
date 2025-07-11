@@ -83,6 +83,8 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
   const penalty = watch('penalty');
 
   const onSubmit = (data: RepaymentFormValues) => {
+    console.log({'repayment data':data});
+    
     onSave({
       ...data,
       processedBy: user?.name,
@@ -169,7 +171,6 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Record Payment</h2>
@@ -183,7 +184,6 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
         </button>
       </div>
 
-      {/* Repayment Summary */}
       <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
         <h3 className="text-lg font-semibold text-blue-800 mb-4">Repayment Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

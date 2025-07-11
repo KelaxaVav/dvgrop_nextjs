@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, DollarSign, AlertTriangle, CheckCircle, Clock, TrendingUp, Search, Filter, Plus, Eye, Edit, Download } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
+import { Calendar, DollarSign, AlertTriangle, CheckCircle, Clock, TrendingUp, Search, Filter, Plus, Eye } from 'lucide-react';
 import RepaymentForm from './RepaymentForm';
 import RepaymentDetails from './RepaymentDetails';
 import RepaymentSchedule from './RepaymentSchedule';
@@ -10,6 +9,8 @@ import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch'
 import { ReduxState } from '../../types/redux_state';
 import { IPayment } from '../../types/payment';
 import { capitalizeFirstLetter } from '../../utils/utils';
+import { createData } from '../../services/create';
+import { API_ROUTES } from '../../utils/api_routes';
 
 export default function RepaymentManager() {
   const dispatch = useDispatch();
@@ -17,15 +18,15 @@ export default function RepaymentManager() {
   const { loans } = useSelector((state: ReduxState) => state.loan);
   const { customers } = useSelector((state: ReduxState) => state.customer);
 
-  const {  updateRepayment, addRepayment } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedRepayment, setSelectedRepayment] = useState<IPayment | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'add' | 'edit' | 'details' | 'schedule' | 'bulk'>('list');
-  useEffect(()=>{
+
+  useEffect(() => {
     fetchPayments(dispatch)
-  },[dispatch])
+  }, [dispatch])
 
   useEffect(() => {
     fetchPayments(dispatch);
@@ -132,9 +133,13 @@ export default function RepaymentManager() {
     setCurrentView('schedule');
   };
 
-  const handleSavePayment = (paymentData: any) => {
+  const handleSavePayment = async (paymentData: any) => {
     if (selectedRepayment) {
+      const formattedDueDate = selectedRepayment.dueDate.split('T')[0];
       const updatedRepayment: Partial<IPayment> = {
+        amount:selectedRepayment?.amount,
+        dueDate:formattedDueDate,
+        emiNo:selectedRepayment.emiNo,
         paidAmount: paymentData.amount,
         paymentDate: paymentData.paymentDate,
         paymentMode: paymentData.paymentMode,
@@ -144,12 +149,18 @@ export default function RepaymentManager() {
         remarks: paymentData.remarks
       };
 
-      updateRepayment(selectedRepayment._id, updatedRepayment);
-    }
+      console.log({ 'selectedRepayment?.dueDate': formattedDueDate});
+      console.log({ 'selectedRepayment': selectedRepayment });
+      console.log({ 'updatedRepayment': updatedRepayment });
 
+      await createData(updatedRepayment, fetchPayments,handleCancel,'Repayment updated',`${API_ROUTES.LOANS}/${selectedRepayment?.loanId?._id}/${API_ROUTES.PAYMENTS}`,dispatch);
+    }
+  };
+
+  const handleCancel = () => {
     setCurrentView('list');
     setSelectedRepayment(null);
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -462,8 +473,8 @@ export default function RepaymentManager() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${overdue && repayment?.status === 'pending'
-                          ? 'bg-red-100 text-red-800'
-                          : getStatusColor(repayment?.status)
+                        ? 'bg-red-100 text-red-800'
+                        : getStatusColor(repayment?.status)
                         }`}>
                         {overdue && repayment?.status === 'pending' ? 'overdue' : repayment?.status}
                       </span>
