@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, DollarSign, Calendar, User, FileText, CreditCard, AlertTriangle, CheckCircle, Download, Phone, Mail } from 'lucide-react';
 
 interface PaymentDetailsProps {
@@ -23,7 +22,7 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
 
   const calculateProgress = () => {
     if (!payment.loan) return 0;
-    return Math.round((payment.emiNo / payment.loan.period) * 100);
+    return Math.round((payment?.emiNo / payment?.loan?.period) * 100);
   };
 
   return (
@@ -32,7 +31,7 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Payment Details</h2>
-          <p className="text-gray-600">EMI #{payment.emiNo} for Loan {payment.loanId}</p>
+          <p className="text-gray-600">EMI #{payment?.emiNo} for Loan {payment?.loanId?._id}</p>
         </div>
         <button
           onClick={onClose}
@@ -49,7 +48,7 @@ export default function PaymentDetails({ payment, onClose, onMakePayment }: Paym
             {getStatusIcon()}
             <div className="ml-3">
               <h3 className="font-semibold capitalize">
-                {payment.isOverdue && payment.status === 'pending' ? 'Overdue Payment' : payment.status}
+                {payment?.isOverdue && payment?.status === 'pending' ? 'Overdue Payment' : payment.status}
               </h3>
               <p className="text-sm">
                 {payment.status === 'paid' && payment.paymentDate && `Paid on ${new Date(payment.paymentDate).toLocaleDateString()}`}
