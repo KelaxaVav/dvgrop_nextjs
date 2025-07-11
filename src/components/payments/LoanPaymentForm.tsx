@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, DollarSign, Calculator, CreditCard, Banknote, Building, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useData } from '../../contexts/DataContext';
+import { X, DollarSign, Calculator, CreditCard, Banknote, Building, CheckCircle } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface LoanPaymentFormProps {
   repayment: any;
@@ -10,8 +10,8 @@ interface LoanPaymentFormProps {
 }
 
 export default function LoanPaymentForm({ repayment, onSubmit, onCancel }: LoanPaymentFormProps) {
-  const { user } = useAuth();
-  const { loans } = useData();
+   const { user } = useSelector((state: ReduxState) => state.auth);
+   const { loans } = useSelector((state: ReduxState) => state.loan);
   
   const [formData, setFormData] = useState({
     amount: repayment.balance,
@@ -28,7 +28,6 @@ export default function LoanPaymentForm({ repayment, onSubmit, onCancel }: LoanP
     idVerified: true,
     sendSMS: true
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showCalculator, setShowCalculator] = useState(false);
 
@@ -172,26 +171,26 @@ export default function LoanPaymentForm({ repayment, onSubmit, onCancel }: LoanP
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <p className="text-sm text-blue-600">Customer</p>
-            <p className="font-medium text-blue-900">{repayment.customer?.name}</p>
-            <p className="text-sm text-blue-700">{repayment.customer?.phone}</p>
+            <p className="font-medium text-blue-900">{repayment?.customer?.name}</p>
+            <p className="text-sm text-blue-700">{repayment?.customer?.phone}</p>
           </div>
           <div>
             <p className="text-sm text-blue-600">Loan Details</p>
-            <p className="font-medium text-blue-900">ID: {repayment.loanId}</p>
-            <p className="text-sm text-blue-700">EMI #{repayment.emiNo}</p>
+            <p className="font-medium text-blue-900">ID: {repayment?.loanId?._id}</p>
+            <p className="text-sm text-blue-700">EMI #{repayment?.emiNo}</p>
           </div>
           <div>
             <p className="text-sm text-blue-600">Due Information</p>
-            <p className={`font-medium ${repayment.isOverdue ? 'text-red-600' : 'text-blue-900'}`}>
-              Due: {new Date(repayment.dueDate).toLocaleDateString()}
+            <p className={`font-medium ${repayment?.isOverdue ? 'text-red-600' : 'text-blue-900'}`}>
+              Due: {new Date(repayment?.dueDate).toLocaleDateString()}
             </p>
-            {repayment.isOverdue && (
-              <p className="text-sm text-red-600">{repayment.daysOverdue} days overdue</p>
+            {repayment?.isOverdue && (
+              <p className="text-sm text-red-600">{repayment?.daysOverdue} days overdue</p>
             )}
           </div>
           <div>
             <p className="text-sm text-blue-600">Outstanding Balance</p>
-            <p className="text-xl font-bold text-blue-900">LKR {repayment.balance.toLocaleString()}</p>
+            <p className="text-xl font-bold text-blue-900">LKR {repayment?.balance.toLocaleString()}</p>
           </div>
         </div>
       </div>

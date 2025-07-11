@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { DollarSign, Search, Filter, Calendar, AlertTriangle, CheckCircle, Clock, Eye } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
 import LoanPaymentForm from './LoanPaymentForm';
 import PaymentDetails from './PaymentDetails';
 import PaymentHistory from './PaymentHistory';
@@ -19,7 +18,7 @@ type PaymentDataType = {
 
 export default function LoanPaymentManager() {
   const dispatch = useDispatch();
-  const { repayments, updateRepayment } = useData();
+  const { payments } = useSelector((state: ReduxState) => state.payment);
   const { loans } = useSelector((state: ReduxState) => state.loan);
   const { customers } = useSelector((state: ReduxState) => state.customer);
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +27,6 @@ export default function LoanPaymentManager() {
   const [selectedLoan, setSelectedLoan] = useState<string | null>(null);
   const [selectedRepayment, setSelectedRepayment] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'list' | 'payment' | 'details' | 'history'>('list');
-
 
   useEffect(() => {
     fetchLoans(dispatch);
@@ -41,9 +39,9 @@ export default function LoanPaymentManager() {
     );
 
     return activeLoans.map(loan => {
-      const customer = customers.find(c => c._id === loan.customerId._id);
+      const customer = customers.find(c => c._id === loan.customerId);
 
-      const loanRepayments = repayments.filter(r => r.loanId === loan._id);
+      const loanRepayments = payments.filter(p => p.loanId._id === loan._id);
 
       const pendingPayments = loanRepayments
         .filter(r => r.status === 'pending' || r.status === 'partial')
@@ -114,9 +112,9 @@ export default function LoanPaymentManager() {
 
   // Filter payments based on search and filters
   const filteredPayments = paymentData.filter(payment => {
-    const matchesSearch = payment.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.loan._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.customer?.phone.includes(searchTerm);
+    const matchesSearch = payment?.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment?.loan?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment?.customer?.phone.includes(searchTerm);
 
     const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'overdue' && payment.loanPaymentStatus === 'overdue') ||
@@ -212,7 +210,7 @@ export default function LoanPaymentManager() {
         remarks: paymentData.remarks
       };
 
-      updateRepayment(selectedRepayment.id, updatedRepayment);
+      // updateRepayment(selectedRepayment.id, updatedRepayment);
     }
 
     setCurrentView('list');
@@ -469,7 +467,7 @@ export default function LoanPaymentManager() {
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{payment.customer?.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{payment?.customer?.name}</h3>
                     <p className="text-sm text-gray-600">Loan: {payment.loan._id} • {payment.loan.type} loan</p>
                   </div>
                   {getStatusBadge(payment)}
@@ -534,14 +532,14 @@ export default function LoanPaymentManager() {
 
               <div className="flex flex-col space-y-2 ml-6">
                 {payment.nextPayment && payment.loanPaymentStatus !== 'completed' && (
-                  <button
-                    onClick={() => handleMakePayment(payment)}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                  >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Make Payment
-                  </button>
-                )}
+                <button
+                  onClick={() => handleMakePayment(payment)}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Make Payment
+                </button>
+                 )} 
                 {payment.nextPayment && (
                   <button
                     onClick={() => handleViewDetails(payment)}
