@@ -8,4 +8,18 @@ export interface IPayment {
   loanId:string;
   emiNo:string;
 }
+export interface IRepayment {
+  _id: string;
+  loanId: string;
+  emiNo: number;
+  dueDate: string;
+  amount: number;
+  paidAmount?: number;
+  balance: number;
+  paymentDate?: string;
+  paymentMode?: 'cash' | 'online' | 'cheque';
+  penalty?: number;
+  status: 'pending' | 'paid' | 'overdue' | 'partial';
+  remarks?: string;
+}
 

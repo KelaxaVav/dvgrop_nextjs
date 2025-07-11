@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { X, Calendar, DollarSign, CheckCircle, AlertTriangle, Clock, Download, Filter } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 
@@ -11,8 +11,8 @@ export default function RepaymentSchedule({ loanId, onClose }: RepaymentSchedule
   const { repayments, loans, customers } = useData();
   const [statusFilter, setStatusFilter] = useState('all');
   
-  const loan = loans.find(l => l.id === loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
+  const loan = loans.find(l => l._id === loanId);
+  const customer = customers.find(c => c._id === loan?.customerId);
   const loanRepayments = repayments.filter(r => r.loanId === loanId).sort((a, b) => a.emiNo - b.emiNo);
 
   const filteredRepayments = loanRepayments.filter(repayment => {

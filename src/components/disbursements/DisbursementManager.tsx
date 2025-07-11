@@ -93,7 +93,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementForm
         loan={selectedLoan}
-        customer={customers.find(c => c._id === selectedLoan.customerId?._id)}
+        customer={customers.find(c => c._id === selectedLoan.customerId)}
         onDisburse={handleDisburse}
         onCancel={() => {
           setCurrentView('list');
@@ -107,7 +107,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementDetails
         loan={selectedLoan}
-        customer={customers.find(c => c._id === selectedLoan.customerId?._id)}
+        customer={customers.find(c => c._id === selectedLoan?.customerId)}
         onClose={() => {
           setCurrentView('list');
           setSelectedLoan(null);
@@ -135,7 +135,7 @@ export default function DisbursementManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Ready to Disburse</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.readyCount}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.readyCount}</p>
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function DisbursementManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending Amount</p>
-              <p className="text-2xl font-bold text-gray-900">LKR {stats.readyAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">LKR {stats?.readyAmount.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function DisbursementManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Disbursed</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.disbursedCount}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.disbursedCount}</p>
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function DisbursementManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Disbursed Amount</p>
-              <p className="text-2xl font-bold text-gray-900">LKR {stats.disbursedAmount.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-900">LKR {stats?.disbursedAmount.toLocaleString()}</p>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function DisbursementManager() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Today's Disbursements</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.todayDisbursed}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats?.todayDisbursed}</p>
             </div>
           </div>
         </div>
@@ -194,9 +194,9 @@ export default function DisbursementManager() {
         <div className="border-b">
           <nav className="flex space-x-8 px-6">
             {[
-              { key: 'ready', label: 'Ready for Disbursement', count: stats.readyCount },
-              { key: 'disbursed', label: 'Disbursed Loans', count: stats.disbursedCount },
-              { key: 'all', label: 'All Loans', count: filteredLoans.length }
+              { key: 'ready', label: 'Ready for Disbursement', count: stats?.readyCount },
+              { key: 'disbursed', label: 'Disbursed Loans', count: stats?.disbursedCount },
+              { key: 'all', label: 'All Loans', count: filteredLoans?.length }
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -216,8 +216,8 @@ export default function DisbursementManager() {
         <div className="p-6">
           <div className="space-y-4">
             {filteredLoans.map((loan) => {
-              const customer = customers.find(c => c._id === loan?.customerId?._id);
-              const isReady = loan.status === 'approved';
+              const customer = customers.find(c => c._id === loan?.customerId);
+              const isReady = loan?.status === 'approved';
 
               return (
                 <div key={loan?._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -225,8 +225,8 @@ export default function DisbursementManager() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-4 mb-3">
                         <h3 className="text-lg font-semibold text-gray-800">{customer?.name}</h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(loan.status)}`}>
-                          {loan.status}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(loan?.status)}`}>
+                          {loan?.status}
                         </span>
                         {isReady && (
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 flex items-center">
@@ -240,12 +240,12 @@ export default function DisbursementManager() {
                         <div>
                           <p className="text-sm text-gray-600">Loan Details</p>
                           <p className="font-medium">ID: {loan?._id}</p>
-                          <p className="text-sm text-gray-500">{loan.type} loan</p>
+                          <p className="text-sm text-gray-500">{loan?.type} loan</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Approved Amount</p>
-                          <p className="font-medium text-lg text-green-600">LKR {(loan.approvedAmount || 0).toLocaleString()}</p>
-                          <p className="text-sm text-gray-500">EMI: LKR {loan.emi.toLocaleString()}</p>
+                          <p className="font-medium text-lg text-green-600">LKR {(loan?.approvedAmount || 0).toLocaleString()}</p>
+                          <p className="text-sm text-gray-500">EMI: LKR {loan?.emi.toLocaleString()}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Customer Info</p>
@@ -258,14 +258,14 @@ export default function DisbursementManager() {
                           </p>
                           <p className="font-medium">
                             {isReady
-                              ? new Date(loan.approvedDate!).toLocaleDateString()
-                              : loan.disbursedDate ? new Date(loan.disbursedDate).toLocaleDateString() : 'N/A'
+                              ? new Date(loan?.approvedDate!).toLocaleDateString()
+                              : loan?.disbursedDate ? new Date(loan?.disbursedDate).toLocaleDateString() : 'N/A'
                             }
                           </p>
                           {loan.disbursementMethod && (
                             <div className="flex items-center text-sm text-gray-500">
-                              {getMethodIcon(loan.disbursementMethod)}
-                              <span className="ml-1 capitalize">{loan.disbursementMethod.replace('_', ' ')}</span>
+                              {getMethodIcon(loan?.disbursementMethod)}
+                              <span className="ml-1 capitalize">{loan?.disbursementMethod.replace('_', ' ')}</span>
                             </div>
                           )}
                         </div>
@@ -278,20 +278,20 @@ export default function DisbursementManager() {
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div>
                               <span className="text-blue-600">Amount:</span>
-                              <span className="ml-1 font-medium">LKR {(loan.disbursedAmount || loan.approvedAmount || 0).toLocaleString()}</span>
+                              <span className="ml-1 font-medium">LKR {(loan?.disbursedAmount || loan?.approvedAmount || 0).toLocaleString()}</span>
                             </div>
                             <div>
                               <span className="text-blue-600">Method:</span>
-                              <span className="ml-1 font-medium capitalize">{loan.disbursementMethod?.replace('_', ' ') || 'N/A'}</span>
+                              <span className="ml-1 font-medium capitalize">{loan?.disbursementMethod?.replace('_', ' ') || 'N/A'}</span>
                             </div>
                             <div>
                               <span className="text-blue-600">Reference:</span>
-                              <span className="ml-1 font-medium">{loan.disbursementReference || 'N/A'}</span>
+                              <span className="ml-1 font-medium">{loan?.disbursementReference || 'N/A'}</span>
                             </div>
-                            {loan.disbursedBy && (
+                            {loan?.disbursedBy && (
                               <div>
                                 <span className="text-blue-600">Disbursed By:</span>
-                                <span className="ml-1 font-medium">{loan.disbursedBy}</span>
+                                   {'name' in loan.disbursedBy ? loan.disbursedBy.name : 'N/A'}
                               </div>
                             )}
                           </div>
@@ -305,15 +305,15 @@ export default function DisbursementManager() {
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div>
                               <span className="text-yellow-600">Approved By:</span>
-                              <span className="ml-1 font-medium">{loan.approvedBy?.name || 'N/A'}</span>
+                              <span className="ml-1 font-medium">{JSON.stringify(loan?.approvedBy?.name) || 'N/A'}</span>
                             </div>
                             <div>
                               <span className="text-yellow-600">Period:</span>
-                              <span className="ml-1 font-medium">{loan.period} months</span>
+                              <span className="ml-1 font-medium">{loan?.period} months</span>
                             </div>
                             <div>
                               <span className="text-yellow-600">Interest Rate:</span>
-                              <span className="ml-1 font-medium">{loan.interestRate}% per month</span>
+                              <span className="ml-1 font-medium">{loan?.interestRate}% per month</span>
                             </div>
                           </div>
                         </div>
@@ -377,10 +377,10 @@ export default function DisbursementManager() {
             <div>
               <h3 className="text-lg font-semibold text-green-800">Ready for Disbursement</h3>
               <p className="text-green-600">
-                {stats.readyCount} loan{stats.readyCount > 1 ? 's' : ''} approved and ready for fund disbursement
+                {stats?.readyCount} loan{stats?.readyCount > 1 ? 's' : ''} approved and ready for fund disbursement
               </p>
               <p className="text-sm text-green-600 mt-1">
-                Total amount: LKR {stats.readyAmount.toLocaleString()}
+                Total amount: LKR {stats?.readyAmount.toLocaleString()}
               </p>
             </div>
             <div className="flex items-center space-x-2">

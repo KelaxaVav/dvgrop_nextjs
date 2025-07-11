@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { X, Upload, Download, CheckCircle, AlertTriangle, DollarSign, FileText, Users } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface BulkPaymentProcessorProps {
   onClose: () => void;
@@ -19,8 +21,10 @@ interface BulkPaymentRecord {
 }
 
 export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorProps) {
-  const { repayments, loans, customers, updateRepayment } = useData();
-  const { user } = useAuth();
+  // const { repayments, loans, customers, updateRepayment } = useData();
+    const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { user } = useSelector((state: ReduxState) => state.auth);
   const [bulkPayments, setBulkPayments] = useState<BulkPaymentRecord[]>([]);
   const [processing, setProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<'upload' | 'review' | 'process' | 'complete'>('upload');
@@ -72,7 +76,7 @@ export default function BulkPaymentProcessor({ onClose }: BulkPaymentProcessorPr
       const errors = [];
       
       // Find the repayment record
-      const repayment = repayments.find(r => 
+      const repayment = repayments.find((r:any) => 
         r.loanId === payment.loanId && r.emiNo === payment.emiNo
       );
       

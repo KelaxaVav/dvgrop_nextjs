@@ -1,7 +1,7 @@
-import React from 'react';
 import { X, DollarSign, Calendar, User, FileText, CreditCard, AlertTriangle, CheckCircle, Download } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
 import { Repayment } from '../../types';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface RepaymentDetailsProps {
   repayment: Repayment;
@@ -9,10 +9,12 @@ interface RepaymentDetailsProps {
 }
 
 export default function RepaymentDetails({ repayment, onClose }: RepaymentDetailsProps) {
-  const { loans, customers } = useData();
+    const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { user } = useSelector((state: ReduxState) => state.auth);
   
-  const loan = loans.find(l => l.id === repayment.loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
+  const loan = loans.find(l => l._id === repayment.loanId);
+  const customer = customers.find(c => c._id === loan?.customerId);
   
   const isOverdue = repayment.status === 'pending' && new Date(repayment.dueDate) < new Date();
   const isPaid = repayment.status === 'paid';
@@ -233,7 +235,7 @@ export default function RepaymentDetails({ repayment, onClose }: RepaymentDetail
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Loan ID:</span>
-                  <span className="font-medium">{loan.id}</span>
+                  <span className="font-medium">{loan._id}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Loan Type:</span>

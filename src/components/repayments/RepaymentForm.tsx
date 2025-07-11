@@ -3,6 +3,8 @@ import { X, DollarSign, Calendar, CreditCard, Banknote, Building, AlertTriangle,
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Repayment } from '../../types';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 interface RepaymentFormProps {
   repayment: Repayment;
@@ -11,12 +13,13 @@ interface RepaymentFormProps {
 }
 
 export default function RepaymentForm({ repayment, onSave, onCancel }: RepaymentFormProps) {
-  const { loans, customers } = useData();
-  const { user } = useAuth();
-  
-  const loan = loans.find(l => l.id === repayment.loanId);
-  const customer = customers.find(c => c.id === loan?.customerId);
-  
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { user } = useSelector((state: ReduxState) => state.auth);
+
+  const loan = loans.find(l => l._id === repayment.loanId);
+  const customer = customers.find(c => c._id === loan?.customerId);
+
   const [formData, setFormData] = useState({
     amount: repayment.balance || repayment.amount,
     paymentDate: new Date().toISOString().split('T')[0],
@@ -52,11 +55,11 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
   const calculatePenalty = () => {
     const dueDate = new Date(repayment.dueDate);
     const today = new Date();
-    
+
     if (today <= dueDate) return 0;
-    
+
     const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     switch (penaltySettings.penaltyType) {
       case 'per_day':
         return Math.round(repayment.amount * (penaltySettings.penaltyRate / 100) * daysOverdue);
@@ -112,7 +115,7 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     const paymentData = {
@@ -198,16 +201,15 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.amount ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.amount ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <Calculator className="w-4 h-4 text-gray-400" />
                 </div>
               </div>
               {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
-              
+
               <div className="mt-2 text-sm space-y-1">
                 <p className="text-gray-600">EMI Amount: LKR {repayment.amount.toLocaleString()}</p>
                 <p className="text-gray-600">Outstanding: LKR {repayment.balance.toLocaleString()}</p>
@@ -225,9 +227,8 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                 type="date"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.paymentDate ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.paymentDate ? 'border-red-300' : 'border-gray-300'
+                  }`}
               />
               {errors.paymentDate && <p className="text-red-500 text-sm mt-1">{errors.paymentDate}</p>}
             </div>
@@ -293,11 +294,10 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                 return (
                   <label
                     key={mode.value}
-                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                      formData.paymentMode === mode.value
+                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.paymentMode === mode.value
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
@@ -307,12 +307,10 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as any })}
                       className="sr-only"
                     />
-                    <Icon className={`w-5 h-5 mr-3 ${
-                      formData.paymentMode === mode.value ? 'text-blue-600' : 'text-gray-400'
-                    }`} />
-                    <span className={`font-medium ${
-                      formData.paymentMode === mode.value ? 'text-blue-900' : 'text-gray-700'
-                    }`}>
+                    <Icon className={`w-5 h-5 mr-3 ${formData.paymentMode === mode.value ? 'text-blue-600' : 'text-gray-400'
+                      }`} />
+                    <span className={`font-medium ${formData.paymentMode === mode.value ? 'text-blue-900' : 'text-gray-700'
+                      }`}>
                       {mode.label}
                     </span>
                   </label>
@@ -333,9 +331,8 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                   type="text"
                   value={formData.bankDetails}
                   onChange={(e) => setFormData({ ...formData, bankDetails: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.bankDetails ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.bankDetails ? 'border-red-300' : 'border-gray-300'
+                    }`}
                   placeholder="Transaction ID, Bank name, Account details"
                 />
                 {errors.bankDetails && <p className="text-red-500 text-sm mt-1">{errors.bankDetails}</p>}
@@ -355,9 +352,8 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                     type="text"
                     value={formData.chequeNumber}
                     onChange={(e) => setFormData({ ...formData, chequeNumber: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.chequeNumber ? 'border-red-300' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.chequeNumber ? 'border-red-300' : 'border-gray-300'
+                      }`}
                     placeholder="Cheque number"
                   />
                   {errors.chequeNumber && <p className="text-red-500 text-sm mt-1">{errors.chequeNumber}</p>}
@@ -370,9 +366,8 @@ export default function RepaymentForm({ repayment, onSave, onCancel }: Repayment
                     type="date"
                     value={formData.chequeDate}
                     onChange={(e) => setFormData({ ...formData, chequeDate: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.chequeDate ? 'border-red-300' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.chequeDate ? 'border-red-300' : 'border-gray-300'
+                      }`}
                   />
                   {errors.chequeDate && <p className="text-red-500 text-sm mt-1">{errors.chequeDate}</p>}
                 </div>
