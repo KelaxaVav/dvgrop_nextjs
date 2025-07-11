@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
 import { X, DollarSign, CreditCard, Banknote, Building, AlertTriangle, Calculator } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { IPayment } from '../../types/payment';
 import { useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
