@@ -4,5 +4,6 @@ export const API_ROUTES = {
     LOANS:'loans',
     CUSTOMERS:'customers',
     PAYMENTS:'payments',
-    USERS:'users'
+    USERS:'users',
+    EMAILCONTACTS:'email_contacts'
 };

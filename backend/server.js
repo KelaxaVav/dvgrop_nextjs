@@ -25,6 +25,7 @@ import settingRoutes from './routes/settings.js';
 import smsRoutes from './routes/sms.js';
 import reportRoutes from './routes/reports.js';
 import collectionDaysRoutes from './routes/collectionDays.js';
+import emailContactsRoutes from './routes/emailContacts.js';
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/v1/settings', settingRoutes);
 app.use('/api/v1/sms', smsRoutes);
 app.use('/api/v1/reports', reportRoutes);
 app.use('/api/v1/collection-days', collectionDaysRoutes);
+app.use('/api/v1/email_contacts', emailContactsRoutes);
 
 // Error handler middleware
 app.use(errorHandler);

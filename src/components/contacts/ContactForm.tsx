@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { X, Mail, Phone, Tag, Plus, Save } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
-import { useData } from '../../contexts/DataContext';
-import { EmailContact } from '../../types';
 import Select from "react-select";
 import { useSelectionOptions } from '../../custom_component/selection_options';
+import { IEmailContact } from '../../types/email_contact';
+import { submitData } from '../../services/create';
+import { API_ROUTES } from '../../utils/api_routes';
+import { useDispatch } from 'react-redux';
+import { fetchEmailContacts } from '../../services/fetch';
+import { removeEmptyFields } from '../../utils/utils';
+import { OrbitProgress } from 'react-loading-indicators';
+import { ClipLoader } from "react-spinners";
 
 interface ContactFormProps {
-  contact?: EmailContact;
+  contact?: IEmailContact;
   onClose: () => void;
+  isEditMode: boolean;
+  isLoading: boolean;
 }
 
 interface ContactFormData {
@@ -22,10 +30,10 @@ interface ContactFormData {
   tags: string[];
 }
 
-export default function ContactForm({ contact, onClose }: ContactFormProps) {
-  // const { addEmailContact, updateEmailContact, customers } = useData();
+export default function ContactForm({ contact, onClose, isEditMode, isLoading }: ContactFormProps) {
   const [newTag, setNewTag] = useState('');
-  const { sourceOptions,customerOptions } = useSelectionOptions();
+  const { sourceOptions, customerOptions } = useSelectionOptions();
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -50,20 +58,14 @@ export default function ContactForm({ contact, onClose }: ContactFormProps) {
   const tags = watch('tags');
 
   const onSubmit = (data: ContactFormData) => {
-    
-    // const contactData: Omit<EmailContact, 'id' | 'createdAt' | 'updatedAt'> = {
-    //   ...data,
-    //   customerId: data.customerId || undefined,
-    //   loanId: data.loanId || undefined,
-    //   syncStatus: 'pending',
-    // };
-
-    // if (contact) {
-    //   updateEmailContact(contact.id, contactData);
-    // } else {
-    //   addEmailContact(contactData);
-    // }
-    // onClose();
+    console.log({ 'daaa': data });
+    const cleanedData = removeEmptyFields(data);
+    const typeId = contact?._id;
+    submitData(
+      cleanedData, isEditMode, typeId || '',
+      fetchEmailContacts, onClose,
+      data.name, `${API_ROUTES.EMAILCONTACTS}`, dispatch
+    )
   };
 
   const addTag = () => {
@@ -154,7 +156,6 @@ export default function ContactForm({ contact, onClose }: ContactFormProps) {
                   control={control}
                   render={({ field }) => (
                     <Select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       {...field}
                       options={sourceOptions}
                       onChange={(selectedOption) => {
@@ -165,7 +166,7 @@ export default function ContactForm({ contact, onClose }: ContactFormProps) {
                       }
                       isClearable
                       placeholder="Select Customer"
-                      // classNamePrefix="react-select"
+                      classNamePrefix="react-select"
                     />
                   )}
                 />
@@ -288,10 +289,18 @@ export default function ContactForm({ contact, onClose }: ContactFormProps) {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              className={`px-6 py-2 rounded-lg transition-colors flex items-center justify-center ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
             >
-              <Save className="w-4 h-4 mr-2" />
-              {contact ? 'Update Contact' : 'Save Contact'}
+              {
+                isLoading ?
+                  <ClipLoader color="#fff" size={25} />
+                  : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      {contact ? 'Update Contact' : 'Save Contact'}
+                    </>
+                  )
+              }
             </button>
           </div>
         </form>

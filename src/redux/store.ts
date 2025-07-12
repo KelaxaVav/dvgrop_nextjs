@@ -6,6 +6,7 @@ import { customerSlice } from "./customer_slice";
 import { loanSlice } from "./loan_slice";
 import { paymentSlice } from "./payment_slice";
 import { userSlice } from "./user_slice";
+import { emailContactSlice } from "./email_contact_slice";
 
 const persistConfig = {
   key: 'root',
@@ -20,7 +21,8 @@ const persistedReducer = persistCombineReducers(persistConfig, {
   customer:customerSlice.reducer,
   loan:loanSlice.reducer,
   payment:paymentSlice.reducer,
-  user:userSlice.reducer
+  user:userSlice.reducer,
+  emailContact:emailContactSlice.reducer
 });
 
 const store = configureStore({
