@@ -8,6 +8,8 @@ import { fetchLoans } from '../../services/fetch';
 import { ILoan } from '../../types/loan';
 import { capitalizeFirstLetter } from '../../utils/utils';
 import { updateLoanStatus } from '../loans/services/loan_utils';
+import { subscribeLoading } from '../../utils/loading';
+import PageLoader from '../../custom_component/loading';
 
 export default function ApprovalManager() {
   // const {  updateLoan } = useData();
@@ -15,6 +17,7 @@ export default function ApprovalManager() {
   const { loans } = useSelector((state: ReduxState) => state.loan);
   const { user } = useSelector((state: ReduxState) => state.auth);
   const dispatch = useDispatch();
+ const [loading, setLoading] = useState(false);
 
   const [selectedLoan, setSelectedLoan] = useState<ILoan | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -24,7 +27,11 @@ export default function ApprovalManager() {
     if (filter === 'all') return true;
     return loan.status === filter;
   });
-
+useEffect(() => {
+    const unsubscribe = subscribeLoading(setLoading);
+    return () => unsubscribe();
+  }, []);
+  
   useEffect(() => {
     fetchLoans(dispatch);
   }, [dispatch]);
@@ -101,6 +108,10 @@ export default function ApprovalManager() {
   console.log({'selectedLoan':selectedLoan});
   
   return (
+     <div style={{ position: 'relative' }}>
+      {loading && (
+        <PageLoader loading={true} />
+      )}
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
@@ -316,6 +327,7 @@ export default function ApprovalManager() {
           canApprove={user?.role !== 'clerk'}
         />
       )}
+    </div>
     </div>
   );
 }

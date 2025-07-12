@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Search, Plus, Edit, Eye, Trash2, Phone, Mail, Users } from 'lucide-react';
 import { Customer } from '../../types';
 import { useDispatch, useSelector } from "react-redux"
 import { ReduxState } from '../../types/redux_state';
-import { fetchCustomers } from '../../services/fetch';
 import { customerDelete } from './Service/CustomerService';
 
 interface CustomerListProps {
@@ -29,9 +28,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
     setDeleteConfirm(null);
   };
 
-  useEffect(() => {
-    fetchCustomers(dispatch);
-  }, [dispatch]);
+ 
 
   return (
     <div className="space-y-6">

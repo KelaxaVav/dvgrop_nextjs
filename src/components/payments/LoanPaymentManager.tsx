@@ -3,13 +3,14 @@ import { DollarSign, Search, Filter, Calendar, AlertTriangle, CheckCircle, Clock
 import LoanPaymentForm from './LoanPaymentForm';
 import PaymentDetails from './PaymentDetails';
 import PaymentHistory from './PaymentHistory';
-import { Repayment } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
 import { createData } from '../../services/create';
 import { API_ROUTES } from '../../utils/api_routes';
 import { IPayment } from '../../types/payment';
+import PageLoader from '../../custom_component/loading';
+import { subscribeLoading } from '../../utils/loading';
 
 type PaymentDataType = {
   amount: number;
@@ -30,11 +31,16 @@ export default function LoanPaymentManager() {
   const [selectedLoan, setSelectedLoan] = useState<string | null>(null);
   const [selectedRepayment, setSelectedRepayment] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'list' | 'payment' | 'details' | 'history'>('list');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchLoans(dispatch);
     fetchCustomers(dispatch);
   }, [dispatch]);
+  useEffect(() => {
+    const unsubscribe = subscribeLoading(setLoading);
+    return () => unsubscribe();
+  }, []);
 
   const getPaymentData = () => {
     const activeLoans = loans.filter(loan =>
@@ -304,273 +310,278 @@ export default function LoanPaymentManager() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">Loan Payment Center</h2>
-          <p className="text-gray-600">Manage all active loan payments and collections</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-sm text-gray-500">
-            {filteredPayments.length} loan{filteredPayments.length !== 1 ? 's' : ''} found
-          </span>
-        </div>
-      </div>
-
-      {/* Stats Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Clock className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Total Loans</p>
-              <p className="text-lg font-bold text-gray-900">{stats.totalLoans}</p>
-            </div>
+    <div style={{ position: 'relative' }}>
+      {loading && (
+        <PageLoader loading={true} />
+      )}
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Loan Payment Center</h2>
+            <p className="text-gray-600">Manage all active loan payments and collections</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <span className="text-sm text-gray-500">
+              {filteredPayments.length} loan{filteredPayments.length !== 1 ? 's' : ''} found
+            </span>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Overdue</p>
-              <p className="text-lg font-bold text-red-600">{stats.overdueCount}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Calendar className="w-5 h-5 text-yellow-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Due Today</p>
-              <p className="text-lg font-bold text-yellow-600">{stats.dueTodayCount}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Current</p>
-              <p className="text-lg font-bold text-green-600">{stats.currentCount}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Outstanding</p>
-              <p className="text-lg font-bold text-gray-900">LKR {stats.totalOutstanding.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-xl shadow-sm border">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-purple-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-xs font-medium text-gray-600">Penalties</p>
-              <p className="text-lg font-bold text-purple-600">LKR {stats.penaltyAmount.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Priority Alerts */}
-      {stats.overdueCount > 0 && (
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-center justify-between">
+        {/* Stats Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
             <div className="flex items-center">
-              <AlertTriangle className="w-6 h-6 text-red-600 mr-3" />
-              <div>
-                <h3 className="font-semibold text-red-800">Urgent: {stats.overdueCount} Overdue Loan{stats.overdueCount > 1 ? 's' : ''}</h3>
-                <p className="text-red-600">
-                  Immediate attention required for overdue payments
-                  {stats.penaltyAmount > 0 && ` (LKR ${stats.penaltyAmount.toLocaleString()} in penalties)`}
-                </p>
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Clock className="w-5 h-5 text-blue-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Total Loans</p>
+                <p className="text-lg font-bold text-gray-900">{stats.totalLoans}</p>
               </div>
             </div>
-            <button
-              onClick={() => setStatusFilter('overdue')}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              View Overdue
-            </button>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Overdue</p>
+                <p className="text-lg font-bold text-red-600">{stats.overdueCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <Calendar className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Due Today</p>
+                <p className="text-lg font-bold text-yellow-600">{stats.dueTodayCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Current</p>
+                <p className="text-lg font-bold text-green-600">{stats.currentCount}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Outstanding</p>
+                <p className="text-lg font-bold text-gray-900">LKR {stats.totalOutstanding.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl shadow-sm border">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-xs font-medium text-gray-600">Penalties</p>
+                <p className="text-lg font-bold text-purple-600">LKR {stats.penaltyAmount.toLocaleString()}</p>
+              </div>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Search and Filters */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search by customer name, loan ID, or phone number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+        {/* Priority Alerts */}
+        {stats.overdueCount > 0 && (
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertTriangle className="w-6 h-6 text-red-600 mr-3" />
+                <div>
+                  <h3 className="font-semibold text-red-800">Urgent: {stats.overdueCount} Overdue Loan{stats.overdueCount > 1 ? 's' : ''}</h3>
+                  <p className="text-red-600">
+                    Immediate attention required for overdue payments
+                    {stats.penaltyAmount > 0 && ` (LKR ${stats.penaltyAmount.toLocaleString()} in penalties)`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setStatusFilter('overdue')}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                View Overdue
+              </button>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Loans</option>
-              <option value="overdue">Overdue</option>
-              <option value="due_today">Due Today</option>
-              <option value="current">Current</option>
-              <option value="completed">Completed</option>
-            </select>
-            <select
-              value={amountFilter}
-              onChange={(e) => setAmountFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Amounts</option>
-              <option value="small">≤ LKR 10,000</option>
-              <option value="medium">LKR 10,001 - 50,000</option>
-              <option value="large">{'>'} LKR 50,000</option>
-            </select>
+        )}
+
+        {/* Search and Filters */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search by customer name, loan ID, or phone number..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Loans</option>
+                <option value="overdue">Overdue</option>
+                <option value="due_today">Due Today</option>
+                <option value="current">Current</option>
+                <option value="completed">Completed</option>
+              </select>
+              <select
+                value={amountFilter}
+                onChange={(e) => setAmountFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Amounts</option>
+                <option value="small">≤ LKR 10,000</option>
+                <option value="medium">LKR 10,001 - 50,000</option>
+                <option value="large">{'>'} LKR 50,000</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Loan List */}
-      <div className="space-y-4">
-        {filteredPayments.map((payment) => (
-          <div key={payment.loan._id} className={`bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow ${getPriorityColor(payment)}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-4 mb-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{payment?.customer?.name}</h3>
-                    <p className="text-sm text-gray-600">Loan: {payment.loan._id} • {payment.loan.type} loan</p>
+        {/* Loan List */}
+        <div className="space-y-4">
+          {filteredPayments.map((payment) => (
+            <div key={payment.loan._id} className={`bg-white rounded-xl shadow-sm border p-6 hover:shadow-md transition-shadow ${getPriorityColor(payment)}`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4 mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800">{payment?.customer?.name}</h3>
+                      <p className="text-sm text-gray-600">Loan: {payment.loan._id} • {payment.loan.type} loan</p>
+                    </div>
+                    {getStatusBadge(payment)}
                   </div>
-                  {getStatusBadge(payment)}
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Next Payment</p>
-                    {payment.nextPayment ? (
-                      <>
-                        <p className={`font-medium ${payment.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-                          {new Date(payment.nextPayment.dueDate).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-gray-500">EMI #{payment.nextPayment.emiNo}</p>
-                      </>
-                    ) : (
-                      <p className="font-medium text-green-600">All payments complete</p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">EMI Amount</p>
-                    {payment.nextPayment ? (
-                      <p className="font-medium text-gray-900">LKR {payment.nextPayment.amount.toLocaleString()}</p>
-                    ) : (
-                      <p className="font-medium text-gray-500">N/A</p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Outstanding Balance</p>
-                    <p className={`font-medium ${payment.totalOutstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      LKR {payment.totalOutstanding.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Progress</p>
-                    <p className="font-medium text-gray-900">{payment.completionPercentage}% complete</p>
-                    <p className="text-sm text-gray-500">{payment.paidEMIs}/{payment.totalEMIs} EMIs paid</p>
-                  </div>
-                </div>
-
-                {payment.penalty > 0 && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                    <div className="flex items-center">
-                      <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
-                      <span className="text-red-800 font-medium">
-                        Penalty: LKR {payment.penalty.toLocaleString()} ({payment.daysOverdue} days × 2% daily)
-                      </span>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Next Payment</p>
+                      {payment.nextPayment ? (
+                        <>
+                          <p className={`font-medium ${payment.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                            {new Date(payment.nextPayment.dueDate).toLocaleDateString()}
+                          </p>
+                          <p className="text-sm text-gray-500">EMI #{payment.nextPayment.emiNo}</p>
+                        </>
+                      ) : (
+                        <p className="font-medium text-green-600">All payments complete</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">EMI Amount</p>
+                      {payment.nextPayment ? (
+                        <p className="font-medium text-gray-900">LKR {payment.nextPayment.amount.toLocaleString()}</p>
+                      ) : (
+                        <p className="font-medium text-gray-500">N/A</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Outstanding Balance</p>
+                      <p className={`font-medium ${payment.totalOutstanding > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        LKR {payment.totalOutstanding.toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Progress</p>
+                      <p className="font-medium text-gray-900">{payment.completionPercentage}% complete</p>
+                      <p className="text-sm text-gray-500">{payment.paidEMIs}/{payment.totalEMIs} EMIs paid</p>
                     </div>
                   </div>
-                )}
 
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>Contact: {payment.customer?.phone}</span>
-                  <span>•</span>
-                  <span>Interest: {payment.loan.interestRate}%</span>
-                  <span>•</span>
-                  <span>Period: {payment.loan.period} months</span>
-                  <span>•</span>
-                  <span>Monthly EMI: LKR {payment.loan.emi.toLocaleString()}</span>
+                  {payment.penalty > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                      <div className="flex items-center">
+                        <AlertTriangle className="w-4 h-4 text-red-600 mr-2" />
+                        <span className="text-red-800 font-medium">
+                          Penalty: LKR {payment.penalty.toLocaleString()} ({payment.daysOverdue} days × 2% daily)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>Contact: {payment.customer?.phone}</span>
+                    <span>•</span>
+                    <span>Interest: {payment.loan.interestRate}%</span>
+                    <span>•</span>
+                    <span>Period: {payment.loan.period} months</span>
+                    <span>•</span>
+                    <span>Monthly EMI: LKR {payment.loan.emi.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col space-y-2 ml-6">
+                  {payment.nextPayment && payment.loanPaymentStatus !== 'completed' && (
+                    <button
+                      onClick={() => handleMakePayment(payment)}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                    >
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Make Payment
+                    </button>
+                  )}
+                  {payment.nextPayment && (
+                    <button
+                      onClick={() => handleViewDetails(payment)}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Details
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleViewHistory(payment.loan._id)}
+                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Payment History
+                  </button>
                 </div>
               </div>
-
-              <div className="flex flex-col space-y-2 ml-6">
-                {payment.nextPayment && payment.loanPaymentStatus !== 'completed' && (
-                  <button
-                    onClick={() => handleMakePayment(payment)}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                  >
-                    <DollarSign className="w-4 h-4 mr-2" />
-                    Make Payment
-                  </button>
-                )}
-                {payment.nextPayment && (
-                  <button
-                    onClick={() => handleViewDetails(payment)}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Details
-                  </button>
-                )}
-                <button
-                  onClick={() => handleViewHistory(payment.loan._id)}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
-                >
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Payment History
-                </button>
-              </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {filteredPayments.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
-          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-600 mb-2">No loans found</h3>
-          <p className="text-gray-500">
-            {searchTerm || statusFilter !== 'all' || amountFilter !== 'all'
-              ? 'Try adjusting your search criteria'
-              : 'No active loans found in the system'}
-          </p>
+          ))}
         </div>
-      )}
+
+        {filteredPayments.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
+            <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-600 mb-2">No loans found</h3>
+            <p className="text-gray-500">
+              {searchTerm || statusFilter !== 'all' || amountFilter !== 'all'
+                ? 'Try adjusting your search criteria'
+                : 'No active loans found in the system'}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

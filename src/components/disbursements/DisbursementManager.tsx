@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DollarSign, Calendar, CheckCircle, Clock, AlertTriangle, Eye, Download, CreditCard, Banknote, Building } from 'lucide-react';
 import DisbursementForm from './DisbursementForm';
 import DisbursementDetails from './DisbursementDetails';
@@ -6,22 +6,32 @@ import { ReduxState } from '../../types/redux_state';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateLoanStatus } from '../loans/services/loan_utils';
 import { ILoan } from '../../types/loan';
+import { subscribeLoading } from '../../utils/loading';
+import PageLoader from '../../custom_component/loading';
+import { fetchCustomers, fetchLoans } from '../../services/fetch';
 
 export default function DisbursementManager() {
-  // const { updateLoan, generateLoanSchedule } = useData();
   const { loans } = useSelector((state: ReduxState) => state.loan);
   const { customers } = useSelector((state: ReduxState) => state.customer);
   const { user } = useSelector((state: ReduxState) => state.auth);
   const dispatch = useDispatch()
-
-  // const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<ILoan | null>(null);
   const [currentView, setCurrentView] = useState<'list' | 'disburse' | 'details'>('list');
   const [filter, setFilter] = useState<'ready' | 'disbursed' | 'all'>('ready');
-
-  // Get loans ready for disbursement (approved but not disbursed)
   const readyForDisbursement = loans.filter(loan => loan.status === 'approved');
   const disbursedLoans = loans.filter(loan => loan.status === 'disbursed' || loan.status === 'active');
+
+    
+    useEffect(() => {
+      const unsubscribe = subscribeLoading(setLoading);
+      return () => unsubscribe();
+    }, []);
+    
+    useEffect(() => {
+        fetchLoans(dispatch);
+        fetchCustomers(dispatch);
+      }, [dispatch]);
 
   const filteredLoans = filter === 'ready' ? readyForDisbursement :
     filter === 'disbursed' ? disbursedLoans :
@@ -60,6 +70,7 @@ export default function DisbursementManager() {
     setCurrentView('list');
     setSelectedLoan(null);
   };
+
 
   const handleViewDetails = (loan: ILoan) => {
     setSelectedLoan(loan);
@@ -117,6 +128,10 @@ export default function DisbursementManager() {
   }
 
   return (
+     <div style={{ position: 'relative' }}>
+      {loading && (
+        <PageLoader loading={true} />
+      )}
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -390,6 +405,7 @@ export default function DisbursementManager() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
