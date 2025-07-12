@@ -8,7 +8,6 @@ import ContactSyncSettings from './ContactSyncSettings';
 
 export default function ContactManager() {
   const { emailContacts, emailSyncConfig, deleteEmailContact, syncEmailContacts, exportEmailContacts } = useData();
-  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [syncFilter, setSyncFilter] = useState('all');

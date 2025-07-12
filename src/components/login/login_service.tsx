@@ -28,7 +28,6 @@ export const useLogin = () => {
         try {
             const response = await Http.post(API_ROUTES.LOGIN, data);
             const responseData = response?.data;
-            console.log({'ressss':responseData});
             
             if (responseData?.success) {
                 const token = responseData?.token;
@@ -51,10 +50,11 @@ export const useLogin = () => {
                     showToastError('Login failed');
                 }
             } else {
-                showToastError('Login failed');
+                const errorMessage = responseData?.error || 'Login failed';
+                showToastError(errorMessage);
             }
         } catch (err: any) {
-            showToastError(err?.message || "Login failed");
+            showToastError(err?.error || "Login failed");
         }
     };
 

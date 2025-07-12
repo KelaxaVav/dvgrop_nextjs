@@ -22,7 +22,13 @@ export const useSelectionOptions = () => {
         { value: 'months', label: 'Months' },
     ];
 
+    const sourceOptions = [
+        { value: 'manual_entry', label: 'Manual Entry' },
+        { value: 'customer_registration', label: 'Customer Registration' },
+        { value: 'loan_approval', label: 'Loan Approval' },
+    ];
+
     return {
-        customerOptions, loanTypeOptions,periodUnitOptions
+        customerOptions, loanTypeOptions,periodUnitOptions,sourceOptions
     }
 }

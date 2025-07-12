@@ -28,21 +28,22 @@ Http.interceptors.response.use((response): any => {
     requestCount--;
     
     if (requestCount === 0) setLoading(false);
-    if (!response.data.success && !response?.data?.status) {
-        return Promise.reject(response?.data);
-    }
-
+    
     return response;
 }, (error) => {
     requestCount--;
     if (requestCount === 0) setLoading(false);
     console.error('AXIOS ERROR:', error);
-    showToastError(error)
+    
+    if (error.response?.status >= 500 || !error.response) {
+        showToastError(error.message || 'Network error occurred');
+    }
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.pathname = '/login';
     }
-    return Promise.reject(error.response.data);
+    return Promise.reject(error.response?.data || error);
 });
 
 export default Http;

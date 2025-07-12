@@ -97,7 +97,7 @@ export default function Dashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {recentLoans.map((loan) => {
-                const customer = customers.find(c => c._id === loan.customerId._id);
+                const customer = customers.find(c => c._id === loan?.customerId?._id);
                 return (
                   <div key={loan._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
@@ -124,8 +124,8 @@ export default function Dashboard() {
           <div className="p-6">
             <div className="space-y-4">
               {upcomingPayments.map((payment) => {
-                const loan = loans.find(l => l._id === payment.loanId);
-                const customer = customers.find(c => c._id === loan?.customerId._id);
+                const loan = loans.find(l => l?._id === payment?.loanId?._id);
+                const customer = customers.find(c => c._id === loan?.customerId?._id);
                 const isOverdue = new Date(payment.dueDate) < new Date();
                 
                 return (

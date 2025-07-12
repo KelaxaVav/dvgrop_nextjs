@@ -61,7 +61,7 @@ export const login = asyncHandler(async (req, res, next) => {
       failureReason: 'Account locked'
     });
     
-    return next(new ErrorResponse('Your account has been locked due to too many failed login attempts. Please contact an administrator.', 401));
+    return next(new ErrorResponse('Your account has been locked due to too many failed login attempts. Please contact an administrator.', 423));
   }
 
   // Check if account is active

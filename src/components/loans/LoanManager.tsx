@@ -21,7 +21,7 @@ export default function LoanManager() {
   const [loading, setLoading] = useState(false);
 
   const filteredLoans = loans.filter(loan => {
-    const customer = customers.find(c => c._id === loan.customerId);
+    const customer = customers.find(c => c._id === loan.customerId?._id);
     const matchesSearch = customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       loan._id.includes(searchTerm) ||
       loan.purpose.toLowerCase().includes(searchTerm.toLowerCase());
@@ -160,7 +160,7 @@ export default function LoanManager() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredLoans.map((loan) => {
-                  const customer = customers.find(c => c._id === loan.customerId);
+                  const customer = customers.find(c => c._id === loan.customerId?._id);
                   return (
                     <tr key={loan._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -304,7 +304,7 @@ export default function LoanManager() {
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-3">Customer Information</h4>
                     {(() => {
-                      const customer = customers?.find(c => c._id === selectedLoan?.customerId);
+                      const customer = customers?.find(c => c._id === selectedLoan?.customerId?._id);
                       return customer ? (
                         <div className="space-y-2 text-sm">
                           <div><span className="text-gray-600">Name :</span> {capitalizeFirstLetter(customer?.name)}</div>

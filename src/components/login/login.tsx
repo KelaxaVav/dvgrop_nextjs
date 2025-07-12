@@ -1,17 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { LoginFormValues } from '../../form_values/form_value';
 import { useLogin, usePasswordToggle } from './login_service';
+import { subscribeLoading } from '../../utils/loading';
 
-export default function Login() {
-  const [error, setError] = useState('');
+const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  // const { login } = useAuth();
-  const { register, handleSubmit} = useForm<LoginFormValues>();
-  const { showPassword, togglePasswordVisibility } = usePasswordToggle();
-    const { onSubmit } = useLogin();
 
+  // const { login } = useAuth();
+  const { register, handleSubmit ,formState:{errors}} = useForm<LoginFormValues>();
+  const { showPassword, togglePasswordVisibility } = usePasswordToggle();
+  const { onSubmit } = useLogin();
+  useEffect(() => {
+    const unsubscribe = subscribeLoading(setLoading);
+    return () => unsubscribe();
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
@@ -23,13 +27,6 @@ export default function Login() {
           <p className="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-            <span className="text-red-700 text-sm">{error}</span>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
@@ -39,7 +36,7 @@ export default function Login() {
               {...register('username')}
               type="text"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-              style={{ borderColor: `${error ? 'red' : ''}` }}
+              style={{ borderColor: `${errors?.username ? 'red' : ''}` }}
               placeholder={'Enter your username'}
               required
             />
@@ -54,7 +51,7 @@ export default function Login() {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                style={{ borderColor: `${error ? 'red' : ''}` }}
+                style={{ borderColor: `${errors.password ? 'red' : ''}` }}
                 placeholder={'Enter your password'}
                 required
               />
@@ -74,22 +71,15 @@ export default function Login() {
 
           <button
             type="submit"
-            disabled={loading}
+            // disabled={loading}
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        {/* <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
-          <div className="space-y-1 text-xs text-gray-500">
-            <div><strong>Admin:</strong> admin / password</div>
-            <div><strong>Officer:</strong> officer / password</div>
-            <div><strong>Clerk:</strong> clerk / password</div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
 }
+
+export default Login

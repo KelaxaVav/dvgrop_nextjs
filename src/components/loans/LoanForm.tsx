@@ -27,27 +27,6 @@ export default function LoanForm({ onCancel, isEditMode, loanId }: LoanFormProps
   const { customerOptions, loanTypeOptions, periodUnitOptions } = useSelectionOptions();
 
   const { register, handleSubmit, control, watch, setValue } = useForm<LoanFormInputs>({
-    // defaultValues: {
-    //   customerId: typeof loan?.customerId === 'string' ? loan?.customerId : loan?.customerId?._id || '',
-    //   type: loan?.type || 'personal',
-    //   requestedAmount: loan?.requestedAmount || 0,
-    //   interestRate: loan?.interestRate || 10,
-    //   period: loan?.period || 12,
-    //   periodUnit: 'months',
-    //   purpose: loan?.purpose || '',
-    //   status: loan?.status || 'pending',
-    //   createdDate: loan?.createdAt ? loan.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
-    //   guarantorName: loan?.guarantor?.name || '',
-    //   guarantorNic: loan?.guarantor?.nic || '',
-    //   guarantorPhone: loan?.guarantor?.phone || '',
-    //   guarantorAddress: loan?.guarantor?.address || '',
-    //   guarantorOccupation: loan?.guarantor?.occupation || '',
-    //   guarantorIncome: loan?.guarantor?.income || 0,
-    //   collateralType: loan?.collateral?.type || '',
-    //   collateralDescription: loan?.collateral?.description || '',
-    //   collateralValue: loan?.collateral?.value || 0,
-    //   sendSMS: true
-    // }
   });
   const dispatch = useDispatch();
   const formData = watch();
