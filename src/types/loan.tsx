@@ -2,7 +2,7 @@ import { ICustomer } from "./customer";
 
 export interface ILoan {
     _id: string;
-    customerId: string;
+    customerId: string | ICustomer;
     type: "personal" | "business" | "agriculture" | "vehicle" | "housing";
     requestedAmount: number;
     interestRate: number;
@@ -24,10 +24,10 @@ export interface ILoan {
     disbursementMethod?: 'bank_transfer' | 'cash' | 'cheque';
     disbursementReference?: string;
     disbursedBy?: {
-         _id: string;
+        _id: string;
         name: string,
     };
-     remarks?: string;
+    remarks?: string;
     createdBy?: {
         _id: string;
         name: string,
