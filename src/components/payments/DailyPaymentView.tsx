@@ -1,28 +1,15 @@
 import React, { useState } from 'react';
-import { 
-  Calendar, 
-  Search, 
-  Filter, 
-  Download, 
-  Printer, 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle, 
-  AlertTriangle, 
-  DollarSign, 
-  Users,
-  FileText,
-  ArrowUpDown
-} from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
+import { Calendar, Search, Filter, Download, Printer, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, DollarSign, Users,FileText,ArrowUpDown} from 'lucide-react';
 import { Customer } from '../../types';
 import { useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
 
 export default function DailyPaymentView() {
-  const { loans, customers, repayments, updateRepayment } = useData();
-  // const { user } = useAuth();
+  // const { loans, customers, repayments, updateRepayment } = useData();
    const { user } = useSelector((state: ReduxState) => state.auth);
+   const { loans } = useSelector((state: ReduxState) => state.loan);
+   const { customers } = useSelector((state: ReduxState) => state.customer);
+   const { payments } = useSelector((state: ReduxState) => state.payment);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [groupBy, setGroupBy] = useState<'customer' | 'date'>('customer');
@@ -44,25 +31,25 @@ export default function DailyPaymentView() {
     );
 
     // Get all repayments for the selected date
-    const dailyRepayments = repayments.filter(repayment => {
+    const dailyRepayments = payments.filter(repayment => {
       const dueDate = new Date(repayment.dueDate).toISOString().split('T')[0];
       return dueDate === selectedDate;
     });
 
     // Map repayments to include customer and loan details
     const paymentsWithDetails = dailyRepayments.map(repayment => {
-      const loan = loans.find(l => l._id === repayment.loanId);
-      const customer = customers.find(c => c._id === loan?.customerId?._id);
+      const loan = loans.find(l => l._id === repayment.loanId._id);
+      const customer = customers.find(c => c._id === loan?.customerId);
       
       const isOverdue = new Date(repayment.dueDate) < new Date() && repayment.status !== 'paid';
       
       return {
-        id: repayment.id,
+        _id: repayment._id,
         repayment,
         loan,
         customer,
         isOverdue,
-        nextPaymentDate: getNextPaymentDate(repayment.loanId, repayment.emiNo)
+        nextPaymentDate: getNextPaymentDate(repayment.loanId._id, repayment.emiNo)
       };
     });
 
@@ -71,8 +58,8 @@ export default function DailyPaymentView() {
 
   // Get the next payment date for a loan
   const getNextPaymentDate = (loanId: string, currentEmiNo: number) => {
-    const nextRepayment = repayments.find(r => 
-      r.loanId === loanId && r.emiNo === currentEmiNo + 1
+    const nextRepayment = payments.find(r => 
+      r.loanId._id === loanId && r.emiNo === currentEmiNo + 1
     );
     
     return nextRepayment ? nextRepayment.dueDate : null;
@@ -89,7 +76,7 @@ export default function DailyPaymentView() {
       return (
         payment.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         payment.loan?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.repayment.id.toLowerCase().includes(searchTerm.toLowerCase())
+        payment.repayment._id.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
     
@@ -144,6 +131,7 @@ export default function DailyPaymentView() {
 
   // Get payments for the current page
   const getCurrentPageItems = () => {
+
     const groupedPayments = getGroupedPayments();
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -188,16 +176,17 @@ export default function DailyPaymentView() {
   };
 
   // Mark payment as paid
-  const markAsPaid = (repaymentId: string, amount: number) => {
+  const markAsPaid = async (repaymentId: string, amount: number) => {
     if (!canEdit) return;
     
-    updateRepayment(repaymentId, {
-      status: 'paid',
-      paidAmount: amount,
-      balance: 0,
-      paymentDate: new Date().toISOString().split('T')[0],
-      paymentMode: 'cash'
-    });
+    // updateRepayment(repaymentId, {
+    //   status: 'paid',
+    //   paidAmount: amount,
+    //   balance: 0,
+    //   paymentDate: new Date().toISOString().split('T')[0],
+    //   paymentMode: 'cash'
+    // });
+    // await createData(updatedRepayment, fetchPayments, handleCancel, 'Repayment updated', `${API_ROUTES.LOANS}/${selectedRepayment?.loanId?._id}/${API_ROUTES.PAYMENTS}`, dispatch);
   };
 
   // Export to Excel

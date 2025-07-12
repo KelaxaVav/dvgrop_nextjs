@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle, XCircle, Clock, Eye, FileText, DollarSign } from 'lucide-react';
-// import { Loan } from '../../types';
 import ApprovalDetails from './ApprovalDetails';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
@@ -12,7 +11,6 @@ import { subscribeLoading } from '../../utils/loading';
 import PageLoader from '../../custom_component/loading';
 
 export default function ApprovalManager() {
-  // const {  updateLoan } = useData();
   const { customers } = useSelector((state: ReduxState) => state.customer);
   const { loans } = useSelector((state: ReduxState) => state.loan);
   const { user } = useSelector((state: ReduxState) => state.auth);

@@ -1,5 +1,4 @@
 import Dashboard from './components/Dashboard';
-
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import ProtectedRoute from './layout/protected_route';
 import DefaultLayout from './layout/default_layout';

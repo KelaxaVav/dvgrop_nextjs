@@ -24,10 +24,10 @@ export interface ILoan {
     disbursementMethod?: 'bank_transfer' | 'cash' | 'cheque';
     disbursementReference?: string;
     disbursedBy?: {
-         _id: string;
+        _id: string;
         name: string,
     };
-     remarks?: string;
+    remarks?: string;
     createdBy?: {
         _id: string;
         name: string,
