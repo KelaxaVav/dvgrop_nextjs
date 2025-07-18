@@ -87,7 +87,7 @@ export default function RepaymentManager() {
 
   const filteredRepayments = payments.filter(repayment => {
     const loan = loans.find(l => l._id === repayment.loanId?._id);
-    const customer = customers.find(c => c._id === loan?.customerId);
+    const customer = customers.find(c => c._id === loan?.customerId?._id);
 
     const matchesSearch = customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       repayment?.loanId?._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -420,7 +420,7 @@ export default function RepaymentManager() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredRepayments?.map((repayment) => {
                   const loan = loans?.find(l => l?._id === repayment?.loanId?._id);
-                  const customer = customers.find(c => c?._id === loan?.customerId);
+                  const customer = customers.find(c => c?._id === loan?.customerId?._id);
                   const overdue = isOverdue(repayment);
                   const penalty = calculatePenalty(repayment);
 

@@ -309,7 +309,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (updates.status === "approved" && emailSyncConfig?.syncOnLoanApproval) {
      
       if (loan) {
-        const customer = customers?.find((c) => c._id === loan.customerId);
+        const customer = customers?.find((c) => c._id === loan.customerId?._id);
         if (customer && customer.email) {
           // Check if contact already exists
           const existingContact = emailContacts?.find(
