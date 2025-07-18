@@ -10,12 +10,12 @@ import { AuthProvider } from './contexts/AuthContext.tsx';
 createRoot(document.getElementById('root')!).render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
-      <AuthProvider>
+      {/* <AuthProvider>
 
-      <DataProvider>
+      <DataProvider> */}
         <App />
-      </DataProvider>
-      </AuthProvider>
+      {/* </DataProvider>
+      </AuthProvider> */}
     </PersistGate>
 
   </Provider>

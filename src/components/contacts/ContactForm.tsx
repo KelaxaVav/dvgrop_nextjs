@@ -9,7 +9,6 @@ import { API_ROUTES } from '../../utils/api_routes';
 import { useDispatch } from 'react-redux';
 import { fetchEmailContacts } from '../../services/fetch';
 import { removeEmptyFields } from '../../utils/utils';
-import { OrbitProgress } from 'react-loading-indicators';
 import { ClipLoader } from "react-spinners";
 
 interface ContactFormProps {
