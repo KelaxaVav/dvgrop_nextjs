@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Settings, Bell, CheckCircle, AlertTriangle, Clock, Download, Search, Filter, RefreshCw, Plus, Eye } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from 'react';
+import { MessageSquare, Send, Settings, Bell, CheckCircle, AlertTriangle, Clock, Eye } from 'lucide-react';
 import SMSTemplateForm from './SMSTemplateForm';
 import SMSSettings from './SMSSettings';
 import SMSLogs from './SMSLogs';
+import { useSelector } from 'react-redux';
+import { ReduxState } from '../../types/redux_state';
 
 export default function SMSManager() {
-  const { loans, customers, repayments } = useData();
-  const { user } = useAuth();
+  const { loans } = useSelector((state: ReduxState) => state.loan);
+  const { customers } = useSelector((state: ReduxState) => state.customer);
+  const { payments } = useSelector((state: ReduxState) => state.payment);
+
   const [currentView, setCurrentView] = useState<'dashboard' | 'templates' | 'settings' | 'logs'>('dashboard');
   const [smsSettings, setSmsSettings] = useState({
     provider: 'twilio',
@@ -117,20 +119,20 @@ export default function SMSManager() {
     const notifications = [];
 
     // Check for overdue payments
-    const overduePayments = repayments.filter(r => 
+    const overduePayments = payments.filter(r => 
       r.status === 'pending' && new Date(r.dueDate) < today
     );
 
     for (const payment of overduePayments) {
-      const loan = loans.find(l => l.id === payment.loanId);
+      const loan = loans.find(l => l._id === payment.loanId?._id);
       if (loan) {
-        const customer = customers.find(c => c.id === loan.customerId);
+        const customer = customers.find(c => c._id === loan.customerId?._id);
         if (customer) {
           // Check if we've already sent an overdue notification for this payment in the last 3 days
           const recentNotification = smsLogs.find(log => 
-            log.customerId === customer.id && 
+            log.customerId === customer._id && 
             log.type === 'latePayment' && 
-            log.message.includes(payment.id) &&
+            log.message.includes(payment._id) &&
             new Date(log.sentAt) > new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000)
           );
 
@@ -151,21 +153,21 @@ export default function SMSManager() {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
-    const upcomingPayments = repayments.filter(r => 
+    const upcomingPayments = payments.filter(r => 
       r.status === 'pending' && 
       new Date(r.dueDate).toDateString() === tomorrow.toDateString()
     );
 
     for (const payment of upcomingPayments) {
-      const loan = loans.find(l => l.id === payment.loanId);
+      const loan = loans.find(l => l._id === payment.loanId?._id);
       if (loan) {
-        const customer = customers.find(c => c.id === loan.customerId);
+        const customer = customers.find(c => c._id === loan.customerId?._id);
         if (customer) {
           // Check if we've already sent a pre-due reminder
           const recentNotification = smsLogs.find(log => 
-            log.customerId === customer.id && 
+            log.customerId === customer._id && 
             log.type === 'preDueReminder' && 
-            log.message.includes(payment.id)
+            log.message.includes(payment._id)
           );
 
           if (!recentNotification) {
@@ -228,7 +230,7 @@ export default function SMSManager() {
       error: Math.random() > 0.1 ? undefined : 'Network error'
     };
     
-    setSmsLogs(prev => [newLog, ...prev]);
+    // setSmsLogs(prev => [newLog, ...prev]);
     
     return newLog;
   };

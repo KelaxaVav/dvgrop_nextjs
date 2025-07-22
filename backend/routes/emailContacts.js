@@ -20,6 +20,13 @@ const router = express.Router();
 // Apply protection to all routes
 router.use(protect);
 
+router.route('/sync')
+  .post(syncEmailContacts);
+
+router.route('/sync-config')
+  .get(getEmailSyncConfig)
+  .put(authorize('admin'), updateEmailSyncConfig);
+  
 router.route('/')
   .get(advancedResults(EmailContact), getEmailContacts)
   .post(createEmailContact);
@@ -29,12 +36,7 @@ router.route('/:id')
   .put(updateEmailContact)
   .delete(deleteEmailContact);
 
-router.route('/sync')
-  .post(syncEmailContacts);
 
-router.route('/sync-config')
-  .get(getEmailSyncConfig)
-  .put(authorize('admin'), updateEmailSyncConfig);
 
 router.route('/import')
   .post(authorize('admin'), importEmailContacts);

@@ -8,6 +8,7 @@ import { setPayments } from "../redux/payment_slice";
 import { ErrorConstant } from "../constants/error_constant_text";
 import { setUsers } from "../redux/user_slice";
 import { setEmailContacts } from "../redux/email_contact_slice";
+import { setEmailSyncConfigs } from "../redux/email_sync_config_slice";
 
 //FETCH LOANS//
 export const fetchLoans = async (dispatch: Dispatch) => {
@@ -70,6 +71,18 @@ export const fetchEmailContacts = async (dispatch: Dispatch) => {
         const data = response.data;
         if (Array.isArray(data.data)) {
             dispatch(setEmailContacts({ data: data.data, count: data.count }));
+        }
+    } catch (error) {
+        handleApiError(error, ErrorConstant.failedToFetch);
+    }
+};
+//FETCH EMAIL CONTACTS//
+export const fetchEmailSyncConfig = async (dispatch: Dispatch) => {
+    try {
+        const response = await Http.get(`${API_ROUTES.EMAILSYNCCONFIG}`);
+        const data = response.data;
+        if (Array.isArray(data.data)) {
+            dispatch(setEmailSyncConfigs({ data: data.data, count: data.count }));
         }
     } catch (error) {
         handleApiError(error, ErrorConstant.failedToFetch);

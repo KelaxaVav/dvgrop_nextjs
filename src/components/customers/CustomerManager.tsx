@@ -48,7 +48,6 @@ export default function CustomerManager() {
     setCurrentView('edit');
   };
 
-  console.log("cuirenjabda", currentView)
   return (
     <>
     <div style={{ position: 'relative' }}>

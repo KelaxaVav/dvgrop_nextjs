@@ -159,47 +159,47 @@ export default function LoanManager() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredLoans.map((loan) => {
-                  const customer = customers.find(c => c._id === loan.customerId?._id);
+                {filteredLoans?.map((loan) => {
+                  const customer = customers.find(c => c?._id === loan?.customerId?._id);
                   return (
                     <tr key={loan._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{customer?.name}</div>
-                          <div className="text-sm text-gray-500">ID: {loan._id}</div>
+                          <div className="text-sm font-medium text-gray-900">{capitalizeFirstLetter(customer?.name ?? '')}</div>
+                          <div className="text-sm text-gray-500">ID: {loan?._id}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900 capitalize">{loan.type} Loan</div>
-                          <div className="text-sm text-gray-500">{loan.purpose}</div>
-                          <div className="text-sm text-gray-500">{loan.period} months @ {loan.interestRate}%</div>
+                          <div className="text-sm font-medium text-gray-900 capitalize">{loan?.type} Loan</div>
+                          <div className="text-sm text-gray-500">{loan?.purpose}</div>
+                          <div className="text-sm text-gray-500">{loan?.period} months @ {loan?.interestRate}%</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            LKR {loan.requestedAmount.toLocaleString()}
+                            LKR {loan?.requestedAmount.toLocaleString()}
                           </div>
-                          {loan.approvedAmount && (
+                          {loan?.approvedAmount && (
                             <div className="text-sm text-gray-500">
-                              Approved: LKR {loan.approvedAmount.toLocaleString()}
+                              Approved: LKR {loan?.approvedAmount.toLocaleString()}
                             </div>
                           )}
                           <div className="text-sm text-gray-500">
-                            EMI: LKR {loan.emi.toLocaleString()}
+                            EMI: LKR {loan?.emi.toLocaleString()}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(loan.status)}`}>
-                          {loan.status}
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(loan?.status)}`}>
+                          {loan?.status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(loan.createdAt).toLocaleDateString()}
+                        {new Date(loan?.createdAt).toLocaleDateString()}
                         <div className="text-xs text-gray-400">
-                          {new Date(loan.createdAt).toLocaleTimeString()}
+                          {new Date(loan?.createdAt).toLocaleTimeString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -218,13 +218,13 @@ export default function LoanManager() {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          {loan.status === 'pending' && (
+                          {loan?.status === 'pending' && (
                             <>
                               <button
-                                onClick={() => updateLoanStatus(loan._id, {
+                                onClick={() => updateLoanStatus(loan?._id, {
                                   status: 'approved',
                                   approvedDate: new Date().toISOString(),
-                                  approvedAmount: loan.requestedAmount
+                                  approvedAmount: loan?.requestedAmount
                                 },dispatch)}
                                 className="text-green-600 hover:text-green-900"
                                 title="Approve Loan"
@@ -233,7 +233,7 @@ export default function LoanManager() {
                               </button>
                               <button
                                 onClick={() => {
-                                  updateLoanStatus(loan._id, {
+                                  updateLoanStatus(loan?._id, {
                                     status: 'rejected',
                                     remarks: 'Rejected by system'
                                   },dispatch)
@@ -255,7 +255,7 @@ export default function LoanManager() {
             </table>
           </div>
 
-          {filteredLoans.length === 0 && (
+          {filteredLoans?.length === 0 && (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No loans found</h3>
@@ -297,7 +297,7 @@ export default function LoanManager() {
                       <div><span className="text-gray-600">Interest Rate :</span> {selectedLoan?.interestRate}% per month</div>
                       <div><span className="text-gray-600">Period :</span> {selectedLoan?.period} months</div>
                       <div><span className="text-gray-600">EMI :</span> LKR {selectedLoan?.emi.toLocaleString()}</div>
-                      <div><span className="text-gray-600">Application Date :</span> {new Date(selectedLoan?.createdAt).toLocaleDateString()}</div>
+                      <div><span className="text-gray-600">Application Date :</span> {new Date(selectedLoan?.createdAt)?.toLocaleDateString()}</div>
                     </div>
                   </div>
 

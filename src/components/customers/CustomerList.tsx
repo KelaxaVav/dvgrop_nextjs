@@ -4,6 +4,7 @@ import { Customer } from '../../types';
 import { useDispatch, useSelector } from "react-redux"
 import { ReduxState } from '../../types/redux_state';
 import { customerDelete } from './Service/CustomerService';
+import { capitalizeFirstLetter } from '../../utils/utils';
 
 interface CustomerListProps {
   onAddCustomer: () => void;
@@ -17,9 +18,9 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const dispatch = useDispatch();
   const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.nic.includes(searchTerm) ||
-    customer.phone.includes(searchTerm)
+    customer?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+    customer?.nic?.includes(searchTerm) ||
+    customer?.phone?.includes(searchTerm)
   );
 
 
@@ -28,11 +29,8 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
     setDeleteConfirm(null);
   };
 
- 
-
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Customer Management</h2>
@@ -47,7 +45,6 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
         </button>
       </div>
 
-      {/* Search and Filters */}
       <div className="bg-white p-6 rounded-xl shadow-sm border">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -63,41 +60,40 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
         </div>
       </div>
 
-      {/* Customer List */}
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCustomers.map((customer) => (
-              <div key={customer._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            {filteredCustomers?.map((customer) => (
+              <div key={customer?._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 text-lg">{customer.name}</h3>
-                    <p className="text-sm text-gray-600">NIC: {customer.nic}</p>
+                    <h3 className="font-semibold text-gray-800 text-lg">{capitalizeFirstLetter(customer?.name)}</h3>
+                    <p className="text-sm text-gray-600">NIC: {customer?.nic}</p>
                   </div>
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${customer.maritalStatus === 'married'
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${customer?.maritalStatus === 'married'
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-gray-100 text-gray-800'
                     }`}>
-                    {customer.maritalStatus}
+                    {capitalizeFirstLetter(customer?.maritalStatus)}
                   </span>
                 </div>
 
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <Phone className="w-4 h-4 mr-2" />
-                    {customer.phone}
+                    {customer?.phone}
                   </div>
-                  {customer.email && (
+                  {customer?.email && (
                     <div className="flex items-center text-sm text-gray-600">
                       <Mail className="w-4 h-4 mr-2" />
-                      {customer.email}
+                      {customer?.email}
                     </div>
                   )}
                   <p className="text-sm text-gray-600">
-                    Income: LKR {customer.income.toLocaleString()}/month
+                    Income: LKR {customer?.income?.toLocaleString()}/month
                   </p>
                   <p className="text-sm text-gray-600">
-                    Occupation: {customer.occupation}
+                    Occupation: {capitalizeFirstLetter(customer?.occupation)}
                   </p>
                 </div>
 
@@ -118,7 +114,7 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => setDeleteConfirm(customer._id)}
+                      onClick={() => setDeleteConfirm(customer?._id)}
                       className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
                       title="Delete Customer"
                     >
@@ -126,14 +122,14 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
                     </button>
                   </div>
                   <span className="text-xs text-gray-500">
-                    Added: {new Date(customer.createdAt).toLocaleDateString()}
+                    Added: {new Date(customer?.createdAt)?.toLocaleDateString()}
                   </span>
                 </div>
               </div>
             ))}
           </div>
 
-          {filteredCustomers.length === 0 && (
+          {filteredCustomers?.length === 0 && (
             <div className="text-center py-12">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No customers found</h3>
@@ -146,7 +142,6 @@ export default function CustomerList({ onAddCustomer, onEditCustomer, onViewCust
       </div>
 
 
-      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl max-w-md w-full mx-4">

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Search, Filter, Download, Printer, ChevronLeft, ChevronRight, CheckCircle, AlertTriangle, DollarSign, Users,FileText,ArrowUpDown} from 'lucide-react';
 import { Customer } from '../../types';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
+import { ICustomer } from '../../types/customer';
+import { fetchCustomers, fetchLoans, fetchPayments } from '../../services/fetch';
 
 export default function DailyPaymentView() {
   // const { loans, customers, repayments, updateRepayment } = useData();
@@ -19,7 +21,14 @@ export default function DailyPaymentView() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isExporting, setIsExporting] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const dispatch=useDispatch()
 
+  useEffect(()=>{
+    fetchCustomers(dispatch)
+    fetchLoans(dispatch)
+    fetchPayments(dispatch)
+  },[dispatch])
+  
   // Check if user has permission to edit
   const canEdit = user?.role === 'admin' || user?.role === 'clerk';
 
@@ -39,7 +48,7 @@ export default function DailyPaymentView() {
     // Map repayments to include customer and loan details
     const paymentsWithDetails = dailyRepayments.map(repayment => {
       const loan = loans.find(l => l._id === repayment.loanId._id);
-      const customer = customers.find(c => c._id === loan?.customerId);
+      const customer = customers.find(c => c._id === loan?.customerId?._id);
       
       const isOverdue = new Date(repayment.dueDate) < new Date() && repayment.status !== 'paid';
       
@@ -120,7 +129,7 @@ export default function DailyPaymentView() {
         }
         acc[customerId].payments.push(payment);
         return acc;
-      }, {} as Record<string, { customer: Customer | undefined, payments: any[] }>);
+      }, {} as Record<string, { customer: ICustomer | undefined, payments: any[] }>);
       
       return Object.values(grouped);
     } else {
@@ -194,10 +203,10 @@ export default function DailyPaymentView() {
     setIsExporting(true);
     
     try {
-      const payments = getFilteredPayments();
+      const downloadpayments = getFilteredPayments();
       const headers = ['Serial No.', 'Customer', 'Loan ID', 'Payment Date', 'Next Payment Date', 'Amount', 'Status'];
       
-      const csvData = payments.map((payment, index) => [
+      const csvData = downloadpayments.map((payment, index) => [
         (index + 1).toString(),
         payment.customer?.name || 'Unknown',
         payment.loan?._id || 'Unknown',
@@ -469,7 +478,7 @@ export default function DailyPaymentView() {
                   
                   {/* Group Items */}
                   {group.payments.map((payment, index) => (
-                    <tr key={payment.id} className={`hover:bg-gray-50 ${payment.isOverdue ? 'bg-red-50' : ''}`}>
+                    <tr key={payment._id} className={`hover:bg-gray-50 ${payment.isOverdue ? 'bg-red-50' : ''}`}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {(currentPage - 1) * itemsPerPage + groupIndex + 1}.{index + 1}
                       </td>
@@ -478,7 +487,7 @@ export default function DailyPaymentView() {
                         <div className="text-sm text-gray-500">{payment.customer?.phone || 'No phone'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{payment.loan?.id || 'Unknown'}</div>
+                        <div className="text-sm text-gray-900">{payment.loan?._id || 'Unknown'}</div>
                         <div className="text-xs text-gray-500">EMI #{payment.repayment.emiNo}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

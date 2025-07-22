@@ -5,5 +5,6 @@ export const API_ROUTES = {
     CUSTOMERS:'customers',
     PAYMENTS:'payments',
     USERS:'users',
-    EMAILCONTACTS:'email_contacts'
+    EMAILCONTACTS:'email_contacts',
+    EMAILSYNCCONFIG:'email_contacts/sync-config'
 };

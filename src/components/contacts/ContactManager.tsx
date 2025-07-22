@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Plus, Search, Filter, Trash2, Edit, Download, RefreshCw, Mail, Phone, Tag, CheckCircle, AlertTriangle, Clock, Upload } from 'lucide-react';
-import { useData } from '../../contexts/DataContext';
 import ContactForm from './ContactForm';
 import ContactSyncSettings from './ContactSyncSettings';
 import { IEmailContact } from '../../types/email_contact';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReduxState } from '../../types/redux_state';
-import { fetchEmailContacts } from '../../services/fetch';
+import { fetchEmailContacts, fetchEmailSyncConfig } from '../../services/fetch';
 import { subscribeLoading } from '../../utils/loading';
 import PageLoader from '../../custom_component/loading';
+import { exportEmailContacts, syncEmailContacts } from './Services/contact_service';
 
 export default function ContactManager() {
   const { emailContacts } = useSelector((state: ReduxState) => state.emailContact);
+  const { emailSyncConfigs } = useSelector((state: ReduxState) => state.emailSyncConfig);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
 
-  const { emailSyncConfig, deleteEmailContact, syncEmailContacts, exportEmailContacts } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [syncFilter, setSyncFilter] = useState('all');
@@ -27,7 +27,8 @@ export default function ContactManager() {
   const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
-    fetchEmailContacts(dispatch);
+    fetchEmailSyncConfig(dispatch);
+    fetchEmailContacts(dispatch); 
   }, [dispatch]);
 
   useEffect(() => {
@@ -62,6 +63,8 @@ export default function ContactManager() {
     return { totalContacts, syncedContacts, pendingContacts, failedContacts, subscribedContacts };
   };
 
+   const deleteEmailContact = (id: string) => {
+  };
   const stats = getContactStats();
 
   const handleAddContact = () => {
@@ -84,7 +87,7 @@ export default function ContactManager() {
     setSyncResult(null);
 
     try {
-      const result = await syncEmailContacts();
+      const result = await syncEmailContacts({emailContacts});
       setSyncResult(result);
     } catch (error) {
       console.error('Error syncing contacts:', error);
@@ -285,25 +288,25 @@ export default function ContactManager() {
         </div>
 
         {/* Sync Status Banner */}
-        <div className={`p-4 rounded-lg border-2 ${emailSyncConfig?.enabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
+        <div className={`p-4 rounded-lg border-2 ${emailSyncConfigs?.enabled ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'
           }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              {emailSyncConfig?.enabled ? (
+              {emailSyncConfigs?.enabled ? (
                 <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
               ) : (
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
               )}
               <div>
-                <h3 className={`font-semibold ${emailSyncConfig?.enabled ? 'text-green-800' : 'text-yellow-800'
+                <h3 className={`font-semibold ${emailSyncConfigs?.enabled ? 'text-green-800' : 'text-yellow-800'
                   }`}>
-                  {emailSyncConfig?.enabled ? 'Contact Sync Enabled' : 'Contact Sync Disabled'}
+                  {emailSyncConfigs?.enabled ? 'Contact Sync Enabled' : 'Contact Sync Disabled'}
                 </h3>
-                <p className={`text-sm ${emailSyncConfig?.enabled ? 'text-green-600' : 'text-yellow-600'
+                <p className={`text-sm ${emailSyncConfigs?.enabled ? 'text-green-600' : 'text-yellow-600'
                   }`}>
-                  {emailSyncConfig?.enabled
-                    ? `Using ${emailSyncConfig?.provider} provider • Last synced: ${emailSyncConfig.lastSyncAt
-                      ? new Date(emailSyncConfig.lastSyncAt).toLocaleString()
+                  {emailSyncConfigs?.enabled
+                    ? `Using ${emailSyncConfigs?.provider} provider • Last synced: ${emailSyncConfigs.lastSyncAt
+                      ? new Date(emailSyncConfigs.lastSyncAt).toLocaleString()
                       : 'Never'
                     }`
                     : 'Enable contact sync in settings to automatically save customer contacts'
@@ -314,7 +317,7 @@ export default function ContactManager() {
             <div className="flex space-x-3">
               <button
                 onClick={handleSyncContacts}
-                disabled={isSyncing || !emailSyncConfig?.enabled}
+                disabled={isSyncing || !emailSyncConfigs?.enabled}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSyncing ? (
@@ -330,7 +333,7 @@ export default function ContactManager() {
                 )}
               </button>
               <button
-                onClick={exportEmailContacts}
+                onClick={()=>exportEmailContacts({emailContacts})}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
               >
                 <Download className="w-4 h-4 mr-2" />

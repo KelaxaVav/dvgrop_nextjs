@@ -104,7 +104,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementForm
         loan={selectedLoan}
-        customer={customers.find(c => c._id === selectedLoan.customerId)}
+        customer={customers.find(c => c._id === selectedLoan.customerId?._id)}
         onDisburse={handleDisburse}
         onCancel={() => {
           setCurrentView('list');
@@ -118,7 +118,7 @@ export default function DisbursementManager() {
     return (
       <DisbursementDetails
         loan={selectedLoan}
-        customer={customers.find(c => c._id === selectedLoan?.customerId)}
+        customer={customers.find(c => c._id === selectedLoan?.customerId?._id)}
         onClose={() => {
           setCurrentView('list');
           setSelectedLoan(null);
@@ -231,7 +231,7 @@ export default function DisbursementManager() {
         <div className="p-6">
           <div className="space-y-4">
             {filteredLoans.map((loan) => {
-              const customer = customers.find(c => c._id === loan?.customerId);
+              const customer = customers.find(c => c._id === loan?.customerId?._id);
               const isReady = loan?.status === 'approved';
 
               return (
